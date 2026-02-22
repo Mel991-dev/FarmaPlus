@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Farma+ — Nuevo paciente</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ============================================================
+       ROOT — Design Tokens
+    ============================================================ */
+    :root {
+      --color-primary:        #1A6B8A;
+      --color-primary-dark:   #1A3A4A;
+      --color-primary-light:  #4A9BB5;
+      --color-secondary:      #2A9D8F;
+      --color-bg-main:        #F4F9FC;
+      --color-bg-card:        #E9F5F8;
+      --color-success:        #27AE60;
+      --color-error:          #E74C3C;
+      --color-warning:        #F39C12;
+      --color-info:           #3498DB;
+      --color-success-soft:   #EAFAF1;
+      --color-error-soft:     #FDEDEC;
+      --color-warning-soft:   #FEF9E7;
+      --color-info-soft:      #EBF5FB;
+      --color-text-primary:   #2C3E50;
+      --color-text-secondary: #7F8C8D;
+      --color-border:         #BDC3C7;
+      --color-sidebar-bg:     #1A3A4A;
+      --color-sidebar-text:   #ECF0F1;
+      --color-sidebar-active: #2A9D8F;
+      --color-sidebar-hover:  #1A6B8A;
+
+      --radius-sm:   4px;
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-full: 9999px;
+
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --sidebar-width: 240px;
+      --topbar-height: 64px;
+
+      --shadow-card:  0 2px 8px rgba(0,0,0,0.08);
+      --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-focus: 0 0 0 3px rgba(26,107,138,0.15);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-main);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      background: var(--color-bg-main);
+      overflow-x: hidden;
+    }
+
+    .app-shell { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--color-sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 24px 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-logo-icon {
+      width: 36px; height: 36px; background: var(--color-secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sidebar-logo-icon svg { color: #fff; width: 20px; height: 20px; }
+    .sidebar-logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .sidebar-logo-text span { color: var(--color-secondary); }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1.5px; color: rgba(236,240,241,0.35);
+      padding: 0 8px; margin: 16px 0 8px;
+    }
+
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; text-decoration: none;
+      color: var(--color-sidebar-text);
+      font-size: 14px; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-item:hover  { background: var(--color-sidebar-hover); }
+    .nav-item.active { background: var(--color-sidebar-active); color: #fff; }
+    .nav-item svg    { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.85; }
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.85);
+      font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: var(--radius-full);
+    }
+
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 12px; }
+    .sidebar-footer { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+    }
+
+    .sidebar-user:hover { background: rgba(255,255,255,0.06); }
+
+    .sidebar-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: rgba(236,240,241,0.5); margin-top: 1px; }
+
+    .sidebar-logout {
+      background: none; border: none; cursor: pointer;
+      color: rgba(236,240,241,0.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px; border-radius: var(--radius-sm); transition: color 0.2s;
+    }
+
+    .sidebar-logout:hover { color: var(--color-error); }
+    .sidebar-logout svg { width: 16px; height: 16px; }
+
+    /* ============================================================
+       TOPBAR
+    ============================================================ */
+    .topbar {
+      height: var(--topbar-height); background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex; align-items: center;
+      padding: 0 24px 0 calc(var(--sidebar-width) + 24px);
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 50; gap: 16px;
+    }
+
+    .topbar-toggle {
+      display: none; background: none; border: none;
+      cursor: pointer; color: var(--color-text-secondary);
+      padding: 6px; border-radius: var(--radius-md);
+    }
+
+    .topbar-toggle svg { width: 22px; height: 22px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+
+    .breadcrumb-item {
+      font-size: 13px; color: var(--color-text-secondary);
+      text-decoration: none; transition: color 0.15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .breadcrumb-item:hover { color: var(--color-primary); }
+    .breadcrumb-item.current { font-weight: 600; color: var(--color-text-primary); pointer-events: none; }
+    .breadcrumb-sep { color: var(--color-border); font-size: 13px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .topbar-icon-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary);
+      transition: background 0.15s, color 0.15s; position: relative;
+    }
+
+    .topbar-icon-btn:hover { background: var(--color-bg-main); color: var(--color-primary); }
+    .topbar-icon-btn svg { width: 20px; height: 20px; }
+
+    .notif-dot {
+      position: absolute; top: 7px; right: 7px;
+      width: 8px; height: 8px;
+      background: var(--color-error); border-radius: 50%; border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px 4px 4px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+      border: none; background: none;
+    }
+
+    .topbar-user:hover { background: var(--color-bg-main); }
+
+    .topbar-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+    }
+
+    .topbar-user-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+    .topbar-user-role { font-size: 11px; color: var(--color-text-secondary); }
+
+    /* ============================================================
+       MAIN CONTENT
+    ============================================================ */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--topbar-height);
+      padding: 28px 32px 56px;
+      flex: 1;
+      min-width: 0;
+      max-width: calc(100vw - var(--sidebar-width));
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 16px;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+
+    .page-header-left h1 {
+      font-size: 22px; font-weight: 700; color: var(--color-text-primary);
+      letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px;
+    }
+
+    .page-header-left h1 svg { width: 22px; height: 22px; color: var(--color-secondary); }
+    .page-header-left p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
+
+    /* ============================================================
+       FORM LAYOUT — 2 columnas
+    ============================================================ */
+    .form-layout {
+      display: grid;
+      grid-template-columns: 1fr 296px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ============================================================
+       FORM CARD
+    ============================================================ */
+    .form-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .form-section {
+      padding: 24px 28px;
+    }
+
+    .form-section + .form-section {
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Encabezado de sección */
+    .section-heading {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon {
+      width: 34px; height: 34px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-icon svg { width: 17px; height: 17px; }
+
+    .section-icon.blue   { background: var(--color-info-soft); }
+    .section-icon.blue   svg { color: var(--color-primary); }
+    .section-icon.green  { background: var(--color-success-soft); }
+    .section-icon.green  svg { color: var(--color-success); }
+    .section-icon.teal   { background: #E0F5F2; }
+    .section-icon.teal   svg { color: var(--color-secondary); }
+
+    .section-heading-text { flex: 1; }
+    .section-title    { font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
+    .section-subtitle { font-size: 12px; color: var(--color-text-secondary); margin-top: 1px; }
+
+    /* ============================================================
+       FORM ELEMENTOS
+    ============================================================ */
+    .form-stack   { display: flex; flex-direction: column; gap: 16px; }
+    .form-grid-2  { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid-doc { display: grid; grid-template-columns: 200px 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-label {
+      font-size: 12px; font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .req { color: var(--color-error); font-size: 13px; line-height: 1; }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-family: var(--font-main); font-size: 14px;
+      color: var(--color-text-primary);
+      background: #fff; width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-input,
+    .form-select { height: 42px; padding: 0 14px; }
+
+    .form-textarea {
+      padding: 11px 14px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .form-textarea-sm  { min-height: 80px; }
+    .form-textarea-md  { min-height: 100px; }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* Contador de caracteres */
+    .char-counter-wrap { position: relative; }
+
+    .char-counter {
+      position: absolute; bottom: 10px; right: 12px;
+      font-size: 11px; color: var(--color-text-secondary);
+      font-family: var(--font-mono); pointer-events: none;
+      background: rgba(255,255,255,0.85);
+      padding: 1px 4px; border-radius: 3px;
+    }
+
+    .char-counter.near   { color: var(--color-warning); }
+    .char-counter.at-max { color: var(--color-error); font-weight: 600; }
+
+    /* Textarea con contador necesita padding-bottom para no solapar */
+    .form-textarea.with-counter { padding-bottom: 28px; }
+
+    .form-hint {
+      font-size: 12px; color: var(--color-text-secondary);
+      display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;
+    }
+
+    .form-hint svg { width: 13px; height: 13px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ============================================================
+       CARD INFORMATIVA SALUD
+    ============================================================ */
+    .info-card-health {
+      background: var(--color-info-soft);
+      border: 1px solid rgba(52,152,219,0.22);
+      border-left: 4px solid var(--color-info);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-top: 4px;
+    }
+
+    .info-card-health-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: rgba(52,152,219,0.14);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .info-card-health-icon svg { width: 16px; height: 16px; color: var(--color-info); }
+
+    .info-card-health-text { flex: 1; }
+
+    .info-card-health-title {
+      font-size: 12px; font-weight: 700; color: #1A5E82;
+      margin-bottom: 3px;
+    }
+
+    .info-card-health-desc {
+      font-size: 12px; color: #2471A3; line-height: 1.5;
+    }
+
+    /* ============================================================
+       SIDE PANEL
+    ============================================================ */
+    .side-panel { display: flex; flex-direction: column; gap: 14px; }
+
+    .side-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .side-card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg-main);
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--color-text-secondary);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .side-card-header svg { width: 14px; height: 14px; }
+
+    .side-card-body {
+      padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    /* Checklist progreso */
+    .progress-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+    }
+
+    .progress-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid var(--color-border);
+      background: #fff;
+    }
+
+    .progress-dot svg { width: 11px; height: 11px; }
+    .progress-dot.done { border-color: var(--color-success); background: var(--color-success-soft); }
+    .progress-dot.done svg { color: var(--color-success); }
+
+    .progress-label { color: var(--color-text-secondary); }
+    .progress-label.done { color: var(--color-text-primary); font-weight: 500; }
+
+    .required-note {
+      font-size: 12px; color: var(--color-text-secondary);
+      padding: 12px 18px;
+      border-top: 1px solid var(--color-border);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .required-note .req { font-size: 14px; }
+
+    /* ============================================================
+       FORM FOOTER
+    ============================================================ */
+    .form-footer {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 16px 22px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-footer-note {
+      font-size: 12px; color: var(--color-text-secondary);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .form-footer-note svg { width: 14px; height: 14px; }
+
+    .form-footer-actions { display: flex; gap: 10px; }
+
+    /* ============================================================
+       BOTONES
+    ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+      text-decoration: none; white-space: nowrap;
+    }
+
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: var(--color-secondary); color: #fff;
+    }
+    .btn-primary:hover {
+      background: #228A7D;
+      box-shadow: 0 4px 14px rgba(42,157,143,0.3);
+    }
+
+    .btn-secondary {
+      background: #fff; color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover { background: var(--color-bg-main); border-color: #aaa; }
+
+    /* ============================================================
+       SIDEBAR OVERLAY MOBILE
+    ============================================================ */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 99;
+    }
+
+    /* ============================================================
+       RESPONSIVE — Tablet
+    ============================================================ */
+    @media (max-width: 1023px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.visible { display: block; }
+      .topbar { padding-left: 16px; }
+      .topbar-toggle { display: flex; }
+      .main-content { margin-left: 0; padding: 20px 20px 48px; max-width: 100vw; }
+      .form-layout { grid-template-columns: 1fr; }
+      .side-panel { order: -1; }
+    }
+
+    /* ============================================================
+       RESPONSIVE — Mobile
+    ============================================================ */
+    @media (max-width: 767px) {
+      .main-content { padding: 16px 16px 48px; }
+      .form-grid-2  { grid-template-columns: 1fr; }
+      .form-grid-doc { grid-template-columns: 1fr; }
+      .form-section { padding: 18px; }
+      .topbar-user > div:last-child { display: none; }
+      .form-footer { flex-direction: column; align-items: stretch; }
+      .form-footer-actions { flex-direction: column-reverse; }
+      .btn { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       SIDEBAR — Pacientes activo
+  ============================================================ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
+
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i data-lucide="pill"></i></div>
+      <span class="sidebar-logo-text">CRM Farma<span>+</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="pantalla-07-dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i>Dashboard
+      </a>
+
+      <span class="nav-section-label">Clientes</span>
+      <a href="pantalla-03-medicos.html" class="nav-item">
+        <i data-lucide="stethoscope"></i>Médicos
+        <span class="nav-badge">48</span>
+      </a>
+      <!-- ACTIVO: Pacientes -->
+      <a href="pantalla-05-pacientes.html" class="nav-item active" aria-current="page">
+        <i data-lucide="users"></i>Pacientes
+        <span class="nav-badge">213</span>
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Inventario</span>
+      <a href="pantalla-08-productos.html" class="nav-item">
+        <i data-lucide="pill"></i>Productos
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Análisis</span>
+      <a href="pantalla-10-reportes-clientes.html" class="nav-item">
+        <i data-lucide="bar-chart-2"></i>Reportes
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Sistema</span>
+      <a href="pantalla-12-usuarios.html" class="nav-item">
+        <i data-lucide="shield-check"></i>Usuarios
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">JM</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Juan Medina</div>
+          <div class="sidebar-user-role">Administrador</div>
+        </div>
+        <button class="sidebar-logout" aria-label="Cerrar sesión"><i data-lucide="log-out"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOPBAR
+  ============================================================ -->
+  <header class="topbar" role="banner">
+    <button class="topbar-toggle" onclick="openSidebar()" aria-label="Abrir menú">
+      <i data-lucide="menu"></i>
+    </button>
+
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="#" class="breadcrumb-item">
+        <i data-lucide="home" style="width:13px;height:13px;"></i> Inicio
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="pantalla-05-pacientes.html" class="breadcrumb-item">Pacientes</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-item current">Nuevo paciente</span>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="topbar-icon-btn" aria-label="Notificaciones">
+        <i data-lucide="bell"></i>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="topbar-icon-btn" aria-label="Ayuda">
+        <i data-lucide="help-circle"></i>
+      </button>
+      <button class="topbar-user">
+        <div class="topbar-avatar">JM</div>
+        <div>
+          <div class="topbar-user-name">Juan Medina</div>
+          <div class="topbar-user-role">Admin</div>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       CONTENIDO PRINCIPAL
+  ============================================================ -->
+  <main class="main-content" role="main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1><i data-lucide="user-plus"></i> Nuevo paciente</h1>
+        <p>Completa los datos para registrar un nuevo paciente en el sistema.</p>
+      </div>
+    </div>
+
+    <!-- Layout dos columnas -->
+    <div class="form-layout">
+
+      <!-- ── Columna principal ── -->
+      <div class="form-stack">
+
+        <!-- ═══════════════════════════════════════════════════
+             SECCIÓN 1 — Datos personales
+        ═══════════════════════════════════════════════════ -->
+        <div class="form-card">
+          <div class="form-section">
+            <div class="section-heading">
+              <div class="section-icon blue"><i data-lucide="user"></i></div>
+              <div class="section-heading-text">
+                <div class="section-title">Datos personales</div>
+                <div class="section-subtitle">Información básica de identificación del paciente</div>
+              </div>
+            </div>
+
+            <div class="form-stack">
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="nombres">
+                    Nombres <span class="req">*</span>
+                  </label>
+                  <input type="text" class="form-input" id="nombres"
+                    placeholder="Ej: Lucía Fernanda" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="apellidos">
+                    Apellidos <span class="req">*</span>
+                  </label>
+                  <input type="text" class="form-input" id="apellidos"
+                    placeholder="Ej: Morales Peña" />
+                </div>
+              </div>
+
+              <div class="form-grid-doc">
+                <div class="form-group">
+                  <label class="form-label" for="tipoDoc">
+                    Tipo de documento <span class="req">*</span>
+                  </label>
+                  <select class="form-select" id="tipoDoc">
+                    <option value="cc" selected>CC — Cédula de ciudadanía</option>
+                    <option value="ce">CE — Cédula de extranjería</option>
+                    <option value="pa">PA — Pasaporte</option>
+                    <option value="rc">RC — Registro civil</option>
+                    <option value="ti">TI — Tarjeta de identidad</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="numDoc">
+                    Número de documento <span class="req">*</span>
+                  </label>
+                  <input type="text" class="form-input" id="numDoc"
+                    placeholder="Ej: 52.148.903" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="fechaNac">
+                    Fecha de nacimiento <span class="req">*</span>
+                  </label>
+                  <input type="date" class="form-input" id="fechaNac" />
+                  <span class="form-hint">
+                    <i data-lucide="info"></i>
+                    La edad se calculará automáticamente a partir de esta fecha.
+                  </span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="genero">Género</label>
+                  <select class="form-select" id="genero">
+                    <option value="">Seleccionar…</option>
+                    <option value="m">Masculino</option>
+                    <option value="f">Femenino</option>
+                    <option value="nb">No binario</option>
+                    <option value="ni">Prefiero no indicar</option>
+                  </select>
+                </div>
+              </div>
+
+            </div><!-- /form-stack sección 1 -->
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             SECCIÓN 2 — Contacto y ubicación
+        ═══════════════════════════════════════════════════ -->
+        <div class="form-card">
+          <div class="form-section">
+            <div class="section-heading">
+              <div class="section-icon green"><i data-lucide="map-pin"></i></div>
+              <div class="section-heading-text">
+                <div class="section-title">Contacto y ubicación</div>
+                <div class="section-subtitle">Datos de contacto y lugar de residencia</div>
+              </div>
+            </div>
+
+            <div class="form-stack">
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="telPrincipal">
+                    Teléfono principal <span class="req">*</span>
+                  </label>
+                  <input type="tel" class="form-input" id="telPrincipal"
+                    placeholder="Ej: 310 456 7890" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="telAlternativo">
+                    Teléfono alternativo
+                  </label>
+                  <input type="tel" class="form-input" id="telAlternativo"
+                    placeholder="Ej: 601 345 6789" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="correo">Correo electrónico</label>
+                <input type="email" class="form-input" id="correo"
+                  placeholder="Ej: lucia.morales@correo.com" />
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="ciudad">
+                    Ciudad <span class="req">*</span>
+                  </label>
+                  <select class="form-select" id="ciudad">
+                    <option value="">Seleccionar ciudad…</option>
+                    <option value="bogota">Bogotá D.C. — Cundinamarca</option>
+                    <option value="medellin">Medellín — Antioquia</option>
+                    <option value="cali">Cali — Valle del Cauca</option>
+                    <option value="barranquilla">Barranquilla — Atlántico</option>
+                    <option value="cartagena">Cartagena — Bolívar</option>
+                    <option value="bucaramanga">Bucaramanga — Santander</option>
+                    <option value="pereira">Pereira — Risaralda</option>
+                    <option value="manizales">Manizales — Caldas</option>
+                    <option value="cucuta">Cúcuta — Norte de Santander</option>
+                    <option value="ibague">Ibagué — Tolima</option>
+                    <option value="neiva">Neiva — Huila</option>
+                    <option value="pasto">Pasto — Nariño</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="direccion">Dirección</label>
+                  <input type="text" class="form-input" id="direccion"
+                    placeholder="Ej: Cra. 45 # 82-30, Apto 501" />
+                </div>
+              </div>
+
+            </div><!-- /form-stack sección 2 -->
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             SECCIÓN 3 — Información de salud
+        ═══════════════════════════════════════════════════ -->
+        <div class="form-card">
+          <div class="form-section">
+            <div class="section-heading">
+              <div class="section-icon teal"><i data-lucide="heart-pulse"></i></div>
+              <div class="section-heading-text">
+                <div class="section-title">Información de salud</div>
+                <div class="section-subtitle">Datos médicos generales del paciente</div>
+              </div>
+            </div>
+
+            <div class="form-stack">
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="eps">EPS</label>
+                  <input type="text" class="form-input" id="eps"
+                    placeholder="Ej: Sura, Nueva EPS, Compensar…" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="medicoTratante">Médico tratante</label>
+                  <select class="form-select" id="medicoTratante">
+                    <option value="">Buscar médico registrado…</option>
+                    <option value="cr">Dr. Carlos Andrés Ríos Montoya — Medicina Gral.</option>
+                    <option value="vg">Dra. Valentina Gómez Salcedo — Cardiología</option>
+                    <option value="jp">Dr. Jorge Iván Patiño Restrepo — Endocrinología</option>
+                    <option value="do">Dra. Diana Ospina Restrepo — Ginecología</option>
+                    <option value="nl">Dra. Natalia López Cifuentes — Medicina Gral.</option>
+                  </select>
+                  <span class="form-hint">
+                    <i data-lucide="info"></i>
+                    Solo se muestran médicos activos registrados en el sistema.
+                  </span>
+                </div>
+              </div>
+
+              <!-- Condición médica — con contador -->
+              <div class="form-group">
+                <label class="form-label" for="condicionMedica">
+                  Condición médica general
+                </label>
+                <div class="char-counter-wrap">
+                  <textarea
+                    class="form-textarea form-textarea-md with-counter"
+                    id="condicionMedica"
+                    maxlength="300"
+                    placeholder="Describe brevemente el diagnóstico o condición médica general del paciente…"
+                    oninput="updateCounter(this, 'counterCondicion')"
+                  ></textarea>
+                  <span class="char-counter" id="counterCondicion">0 / 300</span>
+                </div>
+              </div>
+
+              <!-- Alergias — con contador -->
+              <div class="form-group">
+                <label class="form-label" for="alergias">
+                  Alergias conocidas a medicamentos
+                </label>
+                <div class="char-counter-wrap">
+                  <textarea
+                    class="form-textarea form-textarea-md with-counter"
+                    id="alergias"
+                    maxlength="300"
+                    placeholder="Ej: Penicilina, Sulfonamidas, AINEs…"
+                    oninput="updateCounter(this, 'counterAlergias')"
+                  ></textarea>
+                  <span class="char-counter" id="counterAlergias">0 / 300</span>
+                </div>
+              </div>
+
+              <!-- Card informativa de salud -->
+              <div class="info-card-health" role="note">
+                <div class="info-card-health-icon">
+                  <i data-lucide="info"></i>
+                </div>
+                <div class="info-card-health-text">
+                  <div class="info-card-health-title">Nota importante sobre privacidad</div>
+                  <div class="info-card-health-desc">
+                    Esta información es de carácter general y no reemplaza la historia clínica oficial del paciente. Los datos aquí registrados son de uso exclusivo del equipo comercial para personalizar la atención.
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /form-stack sección 3 -->
+          </div>
+        </div>
+
+        <!-- FORM FOOTER -->
+        <div class="form-footer">
+          <div class="form-footer-note">
+            <i data-lucide="info"></i>
+            <span><span class="req">*</span> Campos obligatorios. Completa todos antes de guardar.</span>
+          </div>
+          <div class="form-footer-actions">
+            <a href="pantalla-05-pacientes.html" class="btn btn-secondary">
+              <i data-lucide="x"></i> Cancelar
+            </a>
+            <button class="btn btn-primary" onclick="handleSave()">
+              <i data-lucide="save"></i> Guardar paciente →
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- /columna principal -->
+
+      <!-- ── Columna lateral ── -->
+      <div class="side-panel">
+
+        <!-- Progreso -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <i data-lucide="list-checks"></i> Progreso
+          </div>
+          <div class="side-card-body">
+            <div class="progress-item">
+              <div class="progress-dot pending"></div>
+              <span class="progress-label">Datos personales</span>
+            </div>
+            <div class="progress-item">
+              <div class="progress-dot pending"></div>
+              <span class="progress-label">Contacto y ubicación</span>
+            </div>
+            <div class="progress-item">
+              <div class="progress-dot pending"></div>
+              <span class="progress-label">Información de salud</span>
+            </div>
+          </div>
+          <div class="required-note">
+            <span class="req">*</span> Campos marcados son obligatorios
+          </div>
+        </div>
+
+        <!-- Campos obligatorios resumen -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <i data-lucide="clipboard-list"></i> Campos requeridos
+          </div>
+          <div class="side-card-body" style="gap:8px;">
+            <!-- Sección 1 -->
+            <p style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.6px;">
+              Datos personales
+            </p>
+            <div style="display:flex;flex-direction:column;gap:5px;padding-left:4px;">
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);">
+                <span style="width:6px;height:6px;background:var(--color-error);border-radius:50%;flex-shrink:0;"></span>
+                Nombres y apellidos
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);">
+                <span style="width:6px;height:6px;background:var(--color-error);border-radius:50%;flex-shrink:0;"></span>
+                Tipo y número de documento
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);">
+                <span style="width:6px;height:6px;background:var(--color-error);border-radius:50%;flex-shrink:0;"></span>
+                Fecha de nacimiento
+              </div>
+            </div>
+            <!-- Sección 2 -->
+            <p style="font-size:11px;font-weight:700;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px;">
+              Contacto
+            </p>
+            <div style="display:flex;flex-direction:column;gap:5px;padding-left:4px;">
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);">
+                <span style="width:6px;height:6px;background:var(--color-error);border-radius:50%;flex-shrink:0;"></span>
+                Teléfono principal
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);">
+                <span style="width:6px;height:6px;background:var(--color-error);border-radius:50%;flex-shrink:0;"></span>
+                Ciudad
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip privacidad -->
+        <div class="side-card">
+          <div class="side-card-header">
+            <i data-lucide="shield"></i> Privacidad de datos
+          </div>
+          <div class="side-card-body" style="gap:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:20px;height:20px;background:var(--color-info-soft);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                <i data-lucide="lock" style="width:12px;height:12px;color:var(--color-primary);"></i>
+              </div>
+              <p style="font-size:12px;color:var(--color-text-secondary);line-height:1.5;">
+                La información de salud se almacena de forma <strong>segura y cifrada</strong>, accesible solo para usuarios autorizados.
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:20px;height:20px;background:var(--color-success-soft);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                <i data-lucide="file-check" style="width:12px;height:12px;color:var(--color-success);"></i>
+              </div>
+              <p style="font-size:12px;color:var(--color-text-secondary);line-height:1.5;">
+                El tratamiento de datos cumple la <strong>Ley 1581 de 2012</strong> (Habeas Data Colombia).
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /columna lateral -->
+
+    </div>
+    <!-- /form-layout -->
+
+  </main>
+</div><!-- /app-shell -->
+
+<script>
+  // Inicializar íconos Lucide
+  lucide.createIcons();
+
+  // Toggle sidebar mobile
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('visible');
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('visible');
+  }
+
+  // Contador de caracteres para textareas
+  function updateCounter(textarea, counterId) {
+    const current = textarea.value.length;
+    const max     = textarea.maxLength;
+    const counter = document.getElementById(counterId);
+    counter.textContent = `${current} / ${max}`;
+
+    counter.classList.remove('near', 'at-max');
+    if (current >= max)            counter.classList.add('at-max');
+    else if (current >= max * 0.8) counter.classList.add('near');
+  }
+
+  // Actualizar progress sidebar al completar secciones
+  const trackFields = {
+    sec1: ['nombres', 'apellidos', 'numDoc', 'fechaNac'],
+    sec2: ['telPrincipal', 'ciudad'],
+    sec3: []
+  };
+
+  function checkProgress() {
+    const dots   = document.querySelectorAll('.progress-dot');
+    const labels = document.querySelectorAll('.progress-label');
+    const groups = [trackFields.sec1, trackFields.sec2, trackFields.sec3];
+
+    groups.forEach((fields, i) => {
+      const allFilled = fields.length === 0
+        || fields.every(id => document.getElementById(id)?.value.trim() !== '');
+      if (allFilled && fields.length > 0) {
+        dots[i].classList.add('done');
+        dots[i].innerHTML = '<i data-lucide="check"></i>';
+        labels[i].classList.add('done');
+        lucide.createIcons();
+      } else {
+        dots[i].classList.remove('done');
+        dots[i].innerHTML = '';
+        labels[i].classList.remove('done');
+      }
+    });
+  }
+
+  // Escuchar cambios en todos los inputs para actualizar progreso
+  document.querySelectorAll('.form-input, .form-select').forEach(el => {
+    el.addEventListener('input', checkProgress);
+    el.addEventListener('change', checkProgress);
+  });
+
+  // Validación básica al guardar
+  function handleSave() {
+    const required = [
+      { id: 'nombres',      label: 'Nombres' },
+      { id: 'apellidos',    label: 'Apellidos' },
+      { id: 'numDoc',       label: 'Número de documento' },
+      { id: 'fechaNac',     label: 'Fecha de nacimiento' },
+      { id: 'telPrincipal', label: 'Teléfono principal' },
+      { id: 'ciudad',       label: 'Ciudad' },
+    ];
+
+    const missing = required.filter(f => !document.getElementById(f.id)?.value.trim());
+
+    if (missing.length > 0) {
+      const names = missing.map(f => f.label).join(', ');
+      alert(`Completa los campos obligatorios antes de guardar:\n${names}`);
+      document.getElementById(missing[0].id)?.focus();
+      return;
+    }
+
+    alert('Paciente guardado correctamente. (Función disponible en producción)');
+  }
+</script>
+</body>
+</html>

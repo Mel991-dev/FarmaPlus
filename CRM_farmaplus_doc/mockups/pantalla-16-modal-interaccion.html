@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Farma+ — Nueva interacción</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ============================================================
+       ROOT — Design Tokens
+    ============================================================ */
+    :root {
+      --color-primary:        #1A6B8A;
+      --color-primary-dark:   #1A3A4A;
+      --color-primary-light:  #4A9BB5;
+      --color-secondary:      #2A9D8F;
+      --color-bg-main:        #F4F9FC;
+      --color-bg-card:        #E9F5F8;
+      --color-success:        #27AE60;
+      --color-error:          #E74C3C;
+      --color-warning:        #F39C12;
+      --color-info:           #3498DB;
+      --color-success-soft:   #EAFAF1;
+      --color-error-soft:     #FDEDEC;
+      --color-warning-soft:   #FEF9E7;
+      --color-info-soft:      #EBF5FB;
+      --color-text-primary:   #2C3E50;
+      --color-text-secondary: #7F8C8D;
+      --color-border:         #BDC3C7;
+      --color-sidebar-bg:     #1A3A4A;
+      --color-sidebar-text:   #ECF0F1;
+      --color-sidebar-active: #2A9D8F;
+      --color-sidebar-hover:  #1A6B8A;
+
+      --radius-sm:   4px;
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-full: 9999px;
+
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --sidebar-width: 240px;
+      --topbar-height: 64px;
+
+      --shadow-card:  0 2px 8px rgba(0,0,0,0.08);
+      --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-modal: 0 24px 64px rgba(0,0,0,0.22);
+      --shadow-focus: 0 0 0 3px rgba(26,107,138,0.15);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-main);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      background: var(--color-bg-main);
+      overflow-x: hidden;
+    }
+
+    .app-shell { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--color-sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 24px 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-logo-icon {
+      width: 36px; height: 36px; background: var(--color-secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sidebar-logo-icon svg { color: #fff; width: 20px; height: 20px; }
+    .sidebar-logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .sidebar-logo-text span { color: var(--color-secondary); }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1.5px; color: rgba(236,240,241,0.35);
+      padding: 0 8px; margin: 16px 0 8px;
+    }
+
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; text-decoration: none;
+      color: var(--color-sidebar-text);
+      font-size: 14px; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-item:hover  { background: var(--color-sidebar-hover); }
+    .nav-item.active { background: var(--color-sidebar-active); color: #fff; }
+    .nav-item svg    { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.85; }
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.85);
+      font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: var(--radius-full);
+    }
+
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 12px; }
+    .sidebar-footer { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+    }
+
+    .sidebar-user:hover { background: rgba(255,255,255,0.06); }
+
+    .sidebar-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name  { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role  { font-size: 11px; color: rgba(236,240,241,0.5); margin-top: 1px; }
+
+    .sidebar-logout {
+      background: none; border: none; cursor: pointer;
+      color: rgba(236,240,241,0.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px; border-radius: var(--radius-sm); transition: color 0.2s;
+    }
+
+    .sidebar-logout:hover { color: var(--color-error); }
+    .sidebar-logout svg { width: 16px; height: 16px; }
+
+    /* ============================================================
+       TOPBAR
+    ============================================================ */
+    .topbar {
+      height: var(--topbar-height); background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex; align-items: center;
+      padding: 0 24px 0 calc(var(--sidebar-width) + 24px);
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 50; gap: 16px;
+    }
+
+    .topbar-toggle {
+      display: none; background: none; border: none;
+      cursor: pointer; color: var(--color-text-secondary);
+      padding: 6px; border-radius: var(--radius-md);
+    }
+
+    .topbar-toggle svg { width: 22px; height: 22px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+
+    .breadcrumb-item {
+      font-size: 13px; color: var(--color-text-secondary);
+      text-decoration: none; transition: color 0.15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .breadcrumb-item:hover { color: var(--color-primary); }
+    .breadcrumb-item.current { font-weight: 600; color: var(--color-text-primary); pointer-events: none; }
+    .breadcrumb-sep { color: var(--color-border); font-size: 13px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .topbar-icon-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary);
+      transition: background 0.15s, color 0.15s; position: relative;
+    }
+
+    .topbar-icon-btn:hover { background: var(--color-bg-main); color: var(--color-primary); }
+    .topbar-icon-btn svg { width: 20px; height: 20px; }
+
+    .notif-dot {
+      position: absolute; top: 7px; right: 7px;
+      width: 8px; height: 8px;
+      background: var(--color-error); border-radius: 50%; border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px 4px 4px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+      border: none; background: none;
+    }
+
+    .topbar-user:hover { background: var(--color-bg-main); }
+
+    .topbar-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+    }
+
+    .topbar-user-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+    .topbar-user-role  { font-size: 11px; color: var(--color-text-secondary); }
+
+    /* ============================================================
+       MAIN CONTENT — Perfil médico (fondo del modal)
+    ============================================================ */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--topbar-height);
+      padding: 28px 32px;
+      flex: 1;
+      min-width: 0;
+      max-width: calc(100vw - var(--sidebar-width));
+      overflow-x: hidden;
+      /* Blur cuando el modal está abierto */
+      transition: filter 0.25s ease;
+    }
+
+    .main-content.blurred { filter: blur(2px); pointer-events: none; user-select: none; }
+
+    /* ── Fondo: mini perfil del médico (contexto del modal) ── */
+    .profile-hero {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      display: flex; align-items: center; gap: 20px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .profile-avatar-lg {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(26,107,138,0.25);
+    }
+
+    .profile-info { flex: 1; min-width: 0; }
+
+    .profile-name {
+      font-size: 20px; font-weight: 700; color: var(--color-text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .profile-specialty {
+      font-size: 14px; color: var(--color-text-secondary); margin-top: 3px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .profile-specialty svg { width: 14px; height: 14px; }
+
+    .profile-meta {
+      display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap;
+    }
+
+    .profile-meta-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--color-text-secondary);
+    }
+
+    .profile-meta-item svg { width: 13px; height: 13px; }
+
+    .profile-badges { display: flex; gap: 8px; flex-wrap: wrap; align-self: flex-start; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      border-radius: var(--radius-full); padding: 4px 12px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+
+    .badge svg { width: 11px; height: 11px; }
+    .badge-activo   { background: var(--color-success-soft); color: var(--color-success); }
+    .badge-medico   { background: var(--color-info-soft);    color: var(--color-primary); border: 1px solid rgba(26,107,138,0.2); }
+    .badge-vigente  { background: var(--color-success-soft); color: #1D6E3A; border: 1px solid rgba(39,174,96,0.2); }
+
+    /* Interacciones previas (fondo) */
+    .section-label-sm {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--color-text-secondary);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    }
+
+    .section-label-sm svg { width: 14px; height: 14px; }
+
+    .prev-interactions {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .prev-int-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #F4F9FC;
+      transition: background 0.12s;
+    }
+
+    .prev-int-item:last-child { border-bottom: none; }
+    .prev-int-item:hover { background: var(--color-bg-card); }
+
+    .int-type-dot {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    .int-type-dot svg { width: 15px; height: 15px; }
+
+    .int-dot-llamada  { background: var(--color-info-soft);    }
+    .int-dot-llamada  svg { color: var(--color-primary); }
+    .int-dot-visita   { background: var(--color-success-soft); }
+    .int-dot-visita   svg { color: var(--color-success); }
+    .int-dot-correo   { background: var(--color-warning-soft); }
+    .int-dot-correo   svg { color: var(--color-warning); }
+    .int-dot-whatsapp { background: #E8F8F4; }
+    .int-dot-whatsapp svg { color: #128C7E; }
+
+    .int-content { flex: 1; min-width: 0; }
+    .int-asunto { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+    .int-desc   { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.4; }
+
+    .int-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 6px;
+    }
+
+    .int-date {
+      font-size: 11px; font-family: var(--font-mono);
+      color: var(--color-text-secondary);
+    }
+
+    .int-sep { color: var(--color-border); font-size: 11px; }
+
+    .int-user-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--color-text-secondary);
+    }
+
+    .int-user-dot-sm {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: #fff;
+    }
+
+    /* Botón que abre el modal */
+    .open-modal-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--color-primary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      padding: 10px 20px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: var(--font-main);
+      transition: background 0.15s, box-shadow 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .open-modal-btn:hover {
+      background: var(--color-primary-dark);
+      box-shadow: 0 4px 14px rgba(26,107,138,0.28);
+    }
+
+    .open-modal-btn svg { width: 16px; height: 16px; }
+
+    /* ============================================================
+       MODAL OVERLAY
+    ============================================================ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.52);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ============================================================
+       MODAL CARD
+    ============================================================ */
+    .modal {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      box-shadow: var(--shadow-modal);
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+
+    /* ── Modal Header ── */
+    .modal-header {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px;
+      position: sticky; top: 0; background: #fff; z-index: 1;
+    }
+
+    .modal-header-left { flex: 1; min-width: 0; }
+
+    .modal-title {
+      font-size: 17px; font-weight: 700; color: var(--color-text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .modal-subtitle {
+      font-size: 13px; color: var(--color-text-secondary); margin-top: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .modal-subtitle-avatar {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+
+    .modal-close {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      cursor: pointer; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary); flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .modal-close:hover {
+      background: var(--color-error-soft);
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    .modal-close svg { width: 16px; height: 16px; }
+
+    /* ── Modal Body ── */
+    .modal-body {
+      padding: 22px 24px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+
+    /* ── Tipo de interacción — chips ── */
+    .tipo-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--color-text-secondary);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 4px;
+    }
+
+    .tipo-label .req { color: var(--color-error); font-size: 13px; }
+
+    .tipo-chips {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .tipo-chip {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px;
+      padding: 12px 8px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-bg-main);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-main);
+      font-size: 12px; font-weight: 600;
+      color: var(--color-text-secondary);
+      line-height: 1;
+    }
+
+    .tipo-chip:hover:not(.selected) {
+      border-color: var(--color-primary-light);
+      background: var(--color-info-soft);
+      color: var(--color-primary);
+    }
+
+    .tipo-chip.selected {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(26,107,138,0.28);
+    }
+
+    .tipo-chip .chip-emoji {
+      font-size: 20px; line-height: 1;
+    }
+
+    /* ── Campos del formulario ── */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--color-text-secondary);
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .req { color: var(--color-error); font-size: 13px; line-height: 1; }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-family: var(--font-main); font-size: 14px;
+      color: var(--color-text-primary);
+      background: #fff; width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-input,
+    .form-select { height: 42px; padding: 0 14px; }
+
+    .form-textarea {
+      padding: 10px 14px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .form-textarea-4 { min-height: 96px; }
+    .form-textarea-2 { min-height: 64px; }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* Campo de fecha/hora */
+    .form-input[type="datetime-local"] {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    .form-input[type="date"] {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    /* Campo condicional — fecha próxima acción */
+    .conditional-field {
+      display: none;
+      flex-direction: column; gap: 6px;
+      animation: fadeDown 0.2s ease;
+    }
+
+    .conditional-field.visible { display: flex; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Nota de advertencia al pie ── */
+    .modal-warning-note {
+      margin: 0 24px;
+      background: var(--color-warning-soft);
+      border: 1px solid rgba(243,156,18,0.3);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+
+    .modal-warning-note-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(243,156,18,0.18);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .modal-warning-note-icon svg { width: 14px; height: 14px; color: var(--color-warning); }
+
+    .modal-warning-note-text {
+      font-size: 12px; color: #7D5A00; line-height: 1.5; flex: 1;
+    }
+
+    .modal-warning-note-text strong { font-weight: 700; }
+
+    /* ── Modal Footer ── */
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--color-border);
+      display: flex; justify-content: flex-end; gap: 8px;
+      background: var(--color-bg-main);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      position: sticky; bottom: 0;
+    }
+
+    /* ============================================================
+       BOTONES
+    ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+      text-decoration: none; white-space: nowrap;
+    }
+
+    .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: var(--color-primary); color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-dark);
+      box-shadow: 0 4px 14px rgba(26,107,138,0.28);
+    }
+
+    .btn-secondary {
+      background: #fff; color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+    }
+
+    .btn-secondary:hover { background: var(--color-bg-main); border-color: #aaa; }
+
+    /* ============================================================
+       SIDEBAR OVERLAY MOBILE
+    ============================================================ */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 99;
+    }
+
+    /* ============================================================
+       RESPONSIVE — Tablet
+    ============================================================ */
+    @media (max-width: 1023px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.visible { display: block; }
+      .topbar { padding-left: 16px; }
+      .topbar-toggle { display: flex; }
+      .main-content { margin-left: 0; padding: 20px; max-width: 100vw; }
+    }
+
+    /* ============================================================
+       RESPONSIVE — Mobile
+    ============================================================ */
+    @media (max-width: 767px) {
+      .main-content { padding: 16px; }
+      .tipo-chips { grid-template-columns: repeat(2, 1fr); }
+      .topbar-user > div:last-child { display: none; }
+      .modal { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+      .modal-overlay { align-items: flex-end; padding: 0; }
+      .profile-hero { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     SIDEBAR OVERLAY MOBILE
+============================================================ -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ============================================================
+     MODAL — Nueva interacción
+============================================================ -->
+<div
+  class="modal-overlay open"
+  id="modalOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modalTitle"
+>
+  <div class="modal" id="modalCard" role="document">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-title" id="modalTitle">Nueva interacción</div>
+        <div class="modal-subtitle">
+          <div class="modal-subtitle-avatar">CR</div>
+          Dr. Carlos Andrés Ríos Montoya
+        </div>
+      </div>
+      <button
+        class="modal-close"
+        onclick="closeModal()"
+        aria-label="Cerrar modal"
+      >
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- Tipo de interacción — chips -->
+      <div>
+        <div class="tipo-label">
+          Tipo de interacción <span class="req">*</span>
+        </div>
+        <div class="tipo-chips" role="group" aria-label="Tipo de interacción">
+          <button
+            class="tipo-chip"
+            onclick="selectTipo(this, 'llamada')"
+            aria-pressed="false"
+          >
+            <span class="chip-emoji">📞</span>
+            <span>Llamada</span>
+          </button>
+          <button
+            class="tipo-chip selected"
+            onclick="selectTipo(this, 'visita')"
+            aria-pressed="true"
+          >
+            <span class="chip-emoji">🏠</span>
+            <span>Visita</span>
+          </button>
+          <button
+            class="tipo-chip"
+            onclick="selectTipo(this, 'correo')"
+            aria-pressed="false"
+          >
+            <span class="chip-emoji">✉️</span>
+            <span>Correo</span>
+          </button>
+          <button
+            class="tipo-chip"
+            onclick="selectTipo(this, 'whatsapp')"
+            aria-pressed="false"
+          >
+            <span class="chip-emoji">💬</span>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fecha y hora -->
+      <div class="form-group">
+        <label class="form-label" for="fechaHora">
+          Fecha y hora <span class="req">*</span>
+        </label>
+        <input
+          type="datetime-local"
+          class="form-input"
+          id="fechaHora"
+          value="2025-02-21T10:30"
+        />
+      </div>
+
+      <!-- Asunto -->
+      <div class="form-group">
+        <label class="form-label" for="asunto">
+          Asunto <span class="req">*</span>
+        </label>
+        <input
+          type="text"
+          class="form-input"
+          id="asunto"
+          placeholder="Resumen breve de la interacción"
+          value="Presentación de nuevos productos Tecnoquímicas"
+        />
+      </div>
+
+      <!-- Descripción -->
+      <div class="form-group">
+        <label class="form-label" for="descripcion">
+          Descripción <span class="req">*</span>
+        </label>
+        <textarea
+          class="form-textarea form-textarea-4"
+          id="descripcion"
+          placeholder="Describe detalladamente la interacción…"
+        >Visita presencial al consultorio del Dr. Ríos. Se presentó el portafolio de antibióticos de la línea Tecnoquímicas, con énfasis en Amoxicilina Mk 500mg y Azitromicina 500mg. El médico mostró interés en la línea de genéricos certificados.</textarea>
+      </div>
+
+      <!-- Resultado / acuerdo -->
+      <div class="form-group">
+        <label class="form-label" for="resultado">
+          Resultado / acuerdo alcanzado
+        </label>
+        <textarea
+          class="form-textarea form-textarea-2"
+          id="resultado"
+          placeholder="¿Qué se acordó o cuál fue el resultado de la interacción?"
+        >El médico solicitará muestras médicas de Amoxicilina Mk para evaluación. Pendiente confirmación de pedido en próxima visita.</textarea>
+      </div>
+
+      <!-- Próxima acción -->
+      <div class="form-group">
+        <label class="form-label" for="proximaAccion">Próxima acción</label>
+        <input
+          type="text"
+          class="form-input"
+          id="proximaAccion"
+          placeholder="Ej: Enviar muestras médicas y ficha técnica"
+          value="Enviar muestras médicas de Amoxicilina Mk y Azitromicina"
+          oninput="toggleFechaProxima()"
+        />
+      </div>
+
+      <!-- Fecha próxima acción — condicional -->
+      <div class="conditional-field visible" id="fechaProximaWrap">
+        <label class="form-label" for="fechaProxima">
+          Fecha de próxima acción
+        </label>
+        <input
+          type="date"
+          class="form-input"
+          id="fechaProxima"
+          value="2025-02-28"
+          style="max-width: 200px;"
+        />
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <!-- Nota de advertencia -->
+    <div class="modal-warning-note" role="note">
+      <div class="modal-warning-note-icon">
+        <i data-lucide="lock"></i>
+      </div>
+      <div class="modal-warning-note-text">
+        <strong>Las interacciones no pueden editarse una vez guardadas.</strong>
+        Verifica que la información sea correcta antes de guardar.
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">
+        <i data-lucide="x"></i> Cancelar
+      </button>
+      <button class="btn btn-primary" onclick="saveInteraccion()">
+        <i data-lucide="check"></i> Guardar interacción →
+      </button>
+    </div>
+
+  </div><!-- /modal -->
+</div><!-- /modal-overlay -->
+
+
+<!-- ============================================================
+     APP SHELL (fondo visible detrás del modal)
+============================================================ -->
+<div class="app-shell">
+
+  <!-- SIDEBAR — Médicos activo -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
+
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i data-lucide="pill"></i></div>
+      <span class="sidebar-logo-text">CRM Farma<span>+</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Principal</span>
+      <a href="pantalla-07-dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i>Dashboard
+      </a>
+
+      <span class="nav-section-label">Clientes</span>
+      <a href="pantalla-03-medicos.html" class="nav-item active" aria-current="page">
+        <i data-lucide="stethoscope"></i>Médicos
+        <span class="nav-badge">48</span>
+      </a>
+      <a href="pantalla-05-pacientes.html" class="nav-item">
+        <i data-lucide="users"></i>Pacientes
+        <span class="nav-badge">213</span>
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Inventario</span>
+      <a href="pantalla-08-productos.html" class="nav-item">
+        <i data-lucide="pill"></i>Productos
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Análisis</span>
+      <a href="pantalla-10-reportes-clientes.html" class="nav-item">
+        <i data-lucide="bar-chart-2"></i>Reportes
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Sistema</span>
+      <a href="pantalla-12-usuarios.html" class="nav-item">
+        <i data-lucide="shield-check"></i>Usuarios
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">JM</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Juan Medina</div>
+          <div class="sidebar-user-role">Administrador</div>
+        </div>
+        <button class="sidebar-logout" aria-label="Cerrar sesión">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <button class="topbar-toggle" onclick="openSidebar()" aria-label="Abrir menú">
+      <i data-lucide="menu"></i>
+    </button>
+
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="#" class="breadcrumb-item">
+        <i data-lucide="home" style="width:13px;height:13px;"></i> Inicio
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="pantalla-03-medicos.html" class="breadcrumb-item">Médicos</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-item current">Dr. Carlos Andrés Ríos Montoya</span>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="topbar-icon-btn" aria-label="Notificaciones">
+        <i data-lucide="bell"></i>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="topbar-icon-btn" aria-label="Ayuda">
+        <i data-lucide="help-circle"></i>
+      </button>
+      <button class="topbar-user">
+        <div class="topbar-avatar">JM</div>
+        <div>
+          <div class="topbar-user-name">Juan Medina</div>
+          <div class="topbar-user-role">Admin</div>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL (fondo, detrás del modal) -->
+  <main class="main-content blurred" id="mainContent" role="main">
+
+    <!-- Perfil del médico -->
+    <div class="profile-hero">
+      <div class="profile-avatar-lg">CR</div>
+      <div class="profile-info">
+        <div class="profile-name">Dr. Carlos Andrés Ríos Montoya</div>
+        <div class="profile-specialty">
+          <i data-lucide="stethoscope"></i> Medicina General · Clínica San Rafael
+        </div>
+        <div class="profile-meta">
+          <div class="profile-meta-item">
+            <i data-lucide="map-pin"></i> Medellín, Antioquia
+          </div>
+          <div class="profile-meta-item">
+            <i data-lucide="phone"></i> 304 567 8901
+          </div>
+          <div class="profile-meta-item">
+            <i data-lucide="mail"></i> c.rios@clinica.com.co
+          </div>
+        </div>
+      </div>
+      <div class="profile-badges">
+        <span class="badge badge-medico"><i data-lucide="stethoscope"></i> Médico</span>
+        <span class="badge badge-activo">Activo</span>
+        <span class="badge badge-vigente"><i data-lucide="check-circle"></i> Licencia vigente</span>
+      </div>
+    </div>
+
+    <!-- Botón abrir modal -->
+    <button class="open-modal-btn" onclick="openModal()">
+      <i data-lucide="message-square-plus"></i>
+      + Nueva interacción
+    </button>
+
+    <!-- Interacciones previas -->
+    <div class="section-label-sm">
+      <i data-lucide="clock"></i> Historial de interacciones
+    </div>
+
+    <div class="prev-interactions">
+
+      <div class="prev-int-item">
+        <div class="int-type-dot int-dot-visita">
+          <i data-lucide="home"></i>
+        </div>
+        <div class="int-content">
+          <div class="int-asunto">Presentación portafolio antibióticos</div>
+          <div class="int-desc">Visita al consultorio. Se presentaron los productos de la línea Tecnoquímicas. El médico mostró interés en la Amoxicilina Mk.</div>
+          <div class="int-meta">
+            <span class="int-date">10/02/2025 — 10:00</span>
+            <span class="int-sep">·</span>
+            <span class="int-user-chip">
+              <span class="int-user-dot-sm">JM</span>Juan Medina
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-int-item">
+        <div class="int-type-dot int-dot-llamada">
+          <i data-lucide="phone"></i>
+        </div>
+        <div class="int-content">
+          <div class="int-asunto">Seguimiento a pedido pendiente</div>
+          <div class="int-desc">Llamada de seguimiento sobre el pedido de muestras médicas solicitado en la visita anterior.</div>
+          <div class="int-meta">
+            <span class="int-date">15/01/2025 — 14:30</span>
+            <span class="int-sep">·</span>
+            <span class="int-user-chip">
+              <span class="int-user-dot-sm" style="background:#27AE60;">MC</span>María Cano
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev-int-item">
+        <div class="int-type-dot int-dot-whatsapp">
+          <i data-lucide="message-circle"></i>
+        </div>
+        <div class="int-content">
+          <div class="int-asunto">Confirmación de disponibilidad de visita</div>
+          <div class="int-desc">Coordinación del horario de visita para el mes de febrero. Médico confirma disponibilidad los viernes de 3:00 pm a 5:00 pm.</div>
+          <div class="int-meta">
+            <span class="int-date">03/01/2025 — 09:15</span>
+            <span class="int-sep">·</span>
+            <span class="int-user-chip">
+              <span class="int-user-dot-sm">JM</span>Juan Medina
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /prev-interactions -->
+
+  </main>
+</div><!-- /app-shell -->
+
+
+<script>
+  // Inicializar íconos Lucide
+  lucide.createIcons();
+
+  // ── Sidebar mobile ──────────────────────────────────────────────
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('visible');
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('visible');
+  }
+
+  // ── Modal ────────────────────────────────────────────────────────
+  function openModal() {
+    document.getElementById('modalOverlay').classList.add('open');
+    document.getElementById('mainContent').classList.add('blurred');
+    document.body.style.overflow = 'hidden';
+    // Foco en el primer chip seleccionado
+    document.querySelector('.tipo-chip.selected')?.focus();
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.getElementById('mainContent').classList.remove('blurred');
+    document.body.style.overflow = '';
+  }
+
+  // Cerrar al hacer clic en el overlay (fuera del modal)
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Cerrar con tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ── Selección de tipo de interacción (chips) ─────────────────────
+  function selectTipo(el, tipo) {
+    document.querySelectorAll('.tipo-chip').forEach(chip => {
+      chip.classList.remove('selected');
+      chip.setAttribute('aria-pressed', 'false');
+    });
+    el.classList.add('selected');
+    el.setAttribute('aria-pressed', 'true');
+  }
+
+  // ── Campo condicional: fecha próxima acción ──────────────────────
+  function toggleFechaProxima() {
+    const accion = document.getElementById('proximaAccion').value.trim();
+    const wrap   = document.getElementById('fechaProximaWrap');
+    if (accion.length > 0) {
+      wrap.classList.add('visible');
+    } else {
+      wrap.classList.remove('visible');
+    }
+  }
+
+  // ── Guardar interacción ──────────────────────────────────────────
+  function saveInteraccion() {
+    const tipoSeleccionado = document.querySelector('.tipo-chip.selected');
+    const fechaHora  = document.getElementById('fechaHora').value.trim();
+    const asunto     = document.getElementById('asunto').value.trim();
+    const descripcion = document.getElementById('descripcion').value.trim();
+
+    const errores = [];
+    if (!tipoSeleccionado) errores.push('Tipo de interacción');
+    if (!fechaHora)        errores.push('Fecha y hora');
+    if (!asunto)           errores.push('Asunto');
+    if (!descripcion)      errores.push('Descripción');
+
+    if (errores.length > 0) {
+      alert(`Completa los campos obligatorios:\n${errores.join(', ')}`);
+      return;
+    }
+
+    // Simulación de guardado exitoso
+    closeModal();
+    setTimeout(() => {
+      alert('✓ Interacción registrada correctamente.\n\nRecuerda: las interacciones no pueden modificarse una vez guardadas.');
+    }, 300);
+  }
+</script>
+</body>
+</html>
