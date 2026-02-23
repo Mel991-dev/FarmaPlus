@@ -97,6 +97,15 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Contenedor interno para manejar alineación de ícono + texto */
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
 /* ────────────────────────────────────────────────────────────
    INPUTS
 ──────────────────────────────────────────────────────────── */
