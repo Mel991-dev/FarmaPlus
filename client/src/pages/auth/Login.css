@@ -150,9 +150,17 @@
 }
 
 /* Encabezado del formulario */
-.form-header { text-align: center; margin-bottom: 36px; }
-.form-title { font-size: 26px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 10px; letter-spacing: -0.4px; }
-.form-subtitle { font-size: 14px; color: var(--color-text-secondary); line-height: 1.65; }
+.form-header { text-align: left; margin-bottom: 28px; }
+.form-pretitle { 
+  font-size: 13px; 
+  font-weight: 700; 
+  color: var(--color-secondary); 
+  letter-spacing: 1.2px; 
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.form-title { font-size: 32px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; letter-spacing: -0.8px; }
+.form-subtitle { font-size: 15px; color: var(--color-text-secondary); line-height: 1.6; }
 
 /* Olvidé mi contraseña */
 .forgot-wrap { text-align: right; margin-bottom: 24px; margin-top: -8px; }

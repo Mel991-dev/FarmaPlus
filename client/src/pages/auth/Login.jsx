@@ -107,8 +107,9 @@ export default function Login() {
         <div className="form-container">
 
           <div className="form-header">
+            <p className="form-pretitle">BIENVENIDO DE NUEVO</p>
             <h1 className="form-title">Iniciar sesión</h1>
-            <p className="form-subtitle">Accede con tus credenciales corporativas para continuar.</p>
+            <p className="form-subtitle">Ingresa tus credenciales para acceder al sistema.</p>
           </div>
 
           {/* Alerta de error global */}
@@ -131,7 +132,7 @@ export default function Login() {
                   id="correo"
                   name="correo"
                   className={`form-input${errors.correo ? ' input-error' : ''}`}
-                  placeholder="correo@drogueria.com"
+                  placeholder="usuario@farmaplus.com.co"
                   value={correo}
                   onChange={(e) => { setCorreo(e.target.value); setErrors(prev => ({ ...prev, correo: '' })); }}
                   autoComplete="email"
@@ -157,7 +158,7 @@ export default function Login() {
                   id="contrasena"
                   name="contrasena"
                   className={`form-input${errors.contrasena ? ' input-error' : ''}`}
-                  placeholder="Tu contraseña"
+                  placeholder="••••••••"
                   value={contrasena}
                   onChange={(e) => { setContrasena(e.target.value); setErrors(prev => ({ ...prev, contrasena: '' })); }}
                   autoComplete="current-password"
@@ -208,8 +209,8 @@ export default function Login() {
           </form>
 
           <footer className="form-footer">
-            <p>Plataforma para uso exclusivo del personal de FarmaPlus.</p>
-            <p className="version-tag">v1.0.0 · CRM Farma+ · 2026</p>
+            <p>Sistema restringido — solo <strong>personal autorizado</strong></p>
+            <p className="version-tag">v2.4.1 · CRM Farma+ · Colombia</p>
           </footer>
         </div>
       </main>
