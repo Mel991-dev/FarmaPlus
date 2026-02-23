@@ -5,8 +5,8 @@
  */
 
 'use strict';
-
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
 const cors = require('cors');
@@ -16,7 +16,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const { testConnection } = require('./config/database');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // ─── Middlewares globales ─────────────────────────────────────────────────────
 
