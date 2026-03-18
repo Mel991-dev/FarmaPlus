@@ -21,18 +21,16 @@ class DashboardController
     {
         $db = Database::getInstance()->getConnection();
 
-        // ── KPI: Ventas del día ─────────────────────────────────
         $stmtVentas = $db->prepare(
             "SELECT COALESCE(SUM(total), 0) AS ventas_dia
-             FROM   ventas
+             FROM   ventas_presenciales
              WHERE  DATE(created_at) = CURDATE()"
         );
         $stmtVentas->execute();
         $ventasDia = (float) ($stmtVentas->fetchColumn() ?? 0);
 
-        // ── KPI: Pedidos pendientes ─────────────────────────────
         $stmtPedidos = $db->prepare(
-            "SELECT COUNT(*) FROM pedidos WHERE estado IN ('pendiente','preparando')"
+            "SELECT COUNT(*) FROM pedidos WHERE estado IN ('pendiente','en_preparacion')"
         );
         $stmtPedidos->execute();
         $pedidosPendientes = (int) ($stmtPedidos->fetchColumn() ?? 0);
@@ -48,14 +46,13 @@ class DashboardController
 
         // ── KPI: Alertas activas ────────────────────────────────
         $alertaModel  = new AlertaModel($db);
-        $alertas      = $alertaModel->obtenerActivas();
+        $alertas      = $alertaModel->listarActivas();
         $alertasTotal = count($alertas);
 
-        // ── Últimas 5 ventas del día ────────────────────────────
         $stmtUltimas = $db->prepare(
             "SELECT v.numero_comprobante, v.total, v.created_at,
                     CONCAT(u.nombres, ' ', u.apellidos) AS vendedor_nombre
-             FROM   ventas v
+             FROM   ventas_presenciales v
              LEFT JOIN usuarios u ON v.vendedor_id = u.usuario_id
              WHERE  DATE(v.created_at) = CURDATE()
              ORDER  BY v.created_at DESC
