@@ -5,7 +5,7 @@
 -- Ejecutar en MySQL Workbench como usuario root
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS farmaplus_db
+CREATE DATABASE IF NOT EXISTS farmaplus
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
