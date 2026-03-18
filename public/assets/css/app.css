@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   FarmaPlus CRM — app.css
+   Entrada de Tailwind CSS. Compilar con:
+   npm run dev   (modo watch)
+   npm run build (modo producción)
+   ============================================================ */
+
+/* Importar tipografías de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Variables CSS corporativas */
+:root {
+    --color-primary:        #1A6B8A;
+    --color-primary-dark:   #1A3A4A;
+    --color-primary-light:  #4A9BB5;
+    --color-secondary:      #2A9D8F;
+    --color-bg-main:        #F4F9FC;
+    --color-bg-card:        #E9F5F8;
+    --color-success:        #27AE60;
+    --color-error:          #E74C3C;
+    --color-warning:        #F39C12;
+    --color-info:           #3498DB;
+    --color-text-primary:   #2C3E50;
+    --color-text-secondary: #7F8C8D;
+    --color-border:         #BDC3C7;
+    --sidebar-width:        240px;
+    --topbar-height:        64px;
+}
+
+@layer base {
+    body {
+        @apply bg-fp-bg-main text-fp-text font-sans;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-semibold text-fp-text;
+    }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg-main); }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-primary-light); }
+}
+
+@layer components {
+    /* Botones */
+    .btn-primary {
+        @apply bg-fp-primary text-white font-semibold px-4 py-3 rounded-fp
+               hover:bg-fp-primary-dark transition-colors duration-200
+               min-h-[48px] inline-flex items-center gap-2;
+    }
+
+    .btn-secondary {
+        @apply bg-fp-secondary text-white font-semibold px-4 py-3 rounded-fp
+               hover:opacity-90 transition-opacity duration-200
+               min-h-[48px] inline-flex items-center gap-2;
+    }
+
+    .btn-outline {
+        @apply border-2 border-fp-primary text-fp-primary font-semibold px-4 py-3 rounded-fp
+               hover:bg-fp-primary hover:text-white transition-colors duration-200
+               min-h-[48px] inline-flex items-center gap-2;
+    }
+
+    .btn-danger {
+        @apply bg-fp-error text-white font-semibold px-4 py-3 rounded-fp
+               hover:opacity-90 transition-opacity duration-200
+               min-h-[48px] inline-flex items-center gap-2;
+    }
+
+    /* Inputs */
+    .input-field {
+        @apply w-full px-4 py-3 border border-fp-border rounded-fp
+               min-h-[48px] text-fp-text bg-white
+               focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20
+               transition-colors duration-200;
+    }
+
+    .input-label {
+        @apply block text-sm font-medium text-fp-text mb-1;
+    }
+
+    /* Cards */
+    .card {
+        @apply bg-white rounded-fp shadow-sm border border-fp-border p-6;
+    }
+
+    .card-header {
+        @apply border-b border-fp-border pb-4 mb-4;
+    }
+
+    /* Badges de estado */
+    .badge {
+        @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+    }
+
+    .badge-success { @apply bg-green-100 text-fp-success; }
+    .badge-error   { @apply bg-red-100 text-fp-error; }
+    .badge-warning { @apply bg-yellow-100 text-fp-warning; }
+    .badge-info    { @apply bg-blue-100 text-fp-info; }
+    .badge-muted   { @apply bg-gray-100 text-fp-muted; }
+
+    /* Sidebar */
+    .sidebar {
+        @apply fixed top-0 left-0 h-full bg-fp-primary-dark text-white z-40;
+        width: var(--sidebar-width);
+    }
+
+    .sidebar-item {
+        @apply flex items-center gap-3 px-4 py-3 text-sm font-medium
+               text-white/70 hover:text-white hover:bg-white/10
+               transition-colors duration-200 rounded-fp mx-2;
+    }
+
+    .sidebar-item.active {
+        @apply text-white bg-fp-secondary;
+    }
+
+    /* Topbar */
+    .topbar {
+        @apply fixed top-0 bg-white border-b border-fp-border z-30 flex items-center
+               justify-between px-6 shadow-sm;
+        left: var(--sidebar-width);
+        right: 0;
+        height: var(--topbar-height);
+    }
+
+    /* Área de contenido principal */
+    .main-content {
+        padding-left: var(--sidebar-width);
+        padding-top: var(--topbar-height);
+        @apply min-h-screen bg-fp-bg-main;
+    }
+
+    /* Tablas */
+    .table-base {
+        @apply w-full text-sm;
+    }
+
+    .table-base thead th {
+        @apply text-left font-semibold text-fp-muted uppercase text-xs tracking-wider
+               py-3 px-4 border-b border-fp-border bg-fp-bg-card;
+    }
+
+    .table-base tbody td {
+        @apply py-3 px-4 border-b border-fp-border/50;
+    }
+
+    .table-base tbody tr:hover {
+        @apply bg-fp-bg-card/50;
+    }
+
+    /* Códigos — JetBrains Mono */
+    .code-mono {
+        @apply font-mono text-sm tracking-tight;
+    }
+
+    /* Alertas de inventario */
+    .alerta-stock  { @apply border-l-4 border-fp-warning bg-yellow-50 p-4 rounded-fp; }
+    .alerta-vence  { @apply border-l-4 border-fp-error bg-red-50 p-4 rounded-fp; }
+}

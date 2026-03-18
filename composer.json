@@ -1,0 +1,21 @@
+{
+    "name": "farmaplus/crm",
+    "description": "Sistema CRM para droguería FarmaPlus — Colombia",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "slim/slim": "^4.0",
+        "slim/psr7": "^1.0",
+        "phpmailer/phpmailer": "^6.0",
+        "mercadopago/dx-php": "^3.0",
+        "vlucas/phpdotenv": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

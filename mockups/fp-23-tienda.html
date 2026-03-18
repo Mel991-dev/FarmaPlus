@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmaPlus — Tienda en línea</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ============================================================
+       ROOT — Design Tokens
+    ============================================================ */
+    :root {
+      --color-primary:        #1A6B8A;
+      --color-primary-dark:   #1A3A4A;
+      --color-primary-light:  #4A9BB5;
+      --color-secondary:      #2A9D8F;
+      --color-bg-main:        #F4F9FC;
+      --color-bg-card:        #E9F5F8;
+      --color-success:        #27AE60;
+      --color-error:          #E74C3C;
+      --color-warning:        #F39C12;
+      --color-success-soft:   #EAFAF1;
+      --color-error-soft:     #FDEDEC;
+      --color-warning-soft:   #FEF9E7;
+      --color-text-primary:   #2C3E50;
+      --color-text-secondary: #7F8C8D;
+      --color-border:         #BDC3C7;
+
+      --radius-sm:   4px;
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-xl:   16px;
+      --radius-full: 9999px;
+
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --navbar-height: 68px;
+      --catbar-height: 52px;
+
+      --shadow-card:  0 2px 8px rgba(0,0,0,0.07);
+      --shadow-hover: 0 8px 28px rgba(0,0,0,0.12);
+      --shadow-focus: 0 0 0 3px rgba(26,107,138,0.18);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: var(--font-main);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      background: var(--color-bg-main);
+      min-height: 100%;
+    }
+
+    /* ============================================================
+       NAVBAR SUPERIOR
+    ============================================================ */
+    .navbar {
+      height: var(--navbar-height);
+      background: var(--color-primary-dark);
+      display: flex; align-items: center;
+      padding: 0 32px; gap: 20px;
+      position: sticky; top: 0; z-index: 200;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+
+    /* Logo */
+    .navbar-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .navbar-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--color-secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .navbar-logo-icon svg { width: 20px; height: 20px; color: #fff; }
+    .navbar-logo-name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .navbar-logo-name span { color: var(--color-secondary); }
+
+    .navbar-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+
+    /* Buscador central */
+    .navbar-search {
+      flex: 1; max-width: 520px;
+      position: relative;
+    }
+    .navbar-search-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 17px; height: 17px; color: rgba(255,255,255,0.45); pointer-events: none;
+    }
+    .navbar-search input {
+      width: 100%; height: 42px;
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-full);
+      padding: 0 16px 0 42px;
+      font-family: var(--font-main); font-size: 14px;
+      color: #fff; outline: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .navbar-search input::placeholder { color: rgba(255,255,255,0.45); }
+    .navbar-search input:focus {
+      background: rgba(255,255,255,0.16);
+      border-color: var(--color-secondary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* Acciones derecha */
+    .navbar-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .navbar-btn {
+      height: 40px; padding: 0 16px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+      display: inline-flex; align-items: center; gap: 7px;
+      transition: all 0.15s; text-decoration: none; white-space: nowrap;
+    }
+    .navbar-btn svg { width: 16px; height: 16px; }
+
+    .navbar-btn-ghost {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
+    }
+    .navbar-btn-ghost:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* Botón carrito flotante */
+    .cart-btn {
+      position: relative;
+      height: 42px; padding: 0 18px;
+      background: var(--color-secondary);
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 700;
+      color: #fff; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 2px 10px rgba(42,157,143,0.4);
+      transition: background 0.15s;
+    }
+    .cart-btn:hover { background: #239B8C; }
+    .cart-btn svg { width: 18px; height: 18px; }
+    .cart-count {
+      position: absolute; top: -6px; right: -6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--color-error);
+      font-size: 11px; font-weight: 700; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--color-primary-dark);
+    }
+
+    /* ============================================================
+       BARRA DE CATEGORÍAS
+    ============================================================ */
+    .catbar {
+      height: var(--catbar-height);
+      background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center;
+      padding: 0 32px;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      position: sticky; top: var(--navbar-height); z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .catbar::-webkit-scrollbar { display: none; }
+
+    .cat-pill {
+      height: 32px; padding: 0 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1.5px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap; transition: all 0.15s;
+      color: var(--color-text-secondary);
+      background: transparent;
+    }
+    .cat-pill svg { width: 14px; height: 14px; }
+    .cat-pill:hover { background: var(--color-bg-card); color: var(--color-primary); }
+    .cat-pill.active {
+      background: var(--color-primary);
+      color: #fff; border-color: var(--color-primary);
+    }
+
+    /* ============================================================
+       LAYOUT TIENDA — Grid + Panel carrito
+    ============================================================ */
+    .store-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 32px 48px;
+      align-items: start;
+    }
+
+    /* ============================================================
+       COLUMNA IZQUIERDA — Catálogo
+    ============================================================ */
+    .catalog-col {}
+
+    .catalog-header {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+      margin-bottom: 18px;
+    }
+    .catalog-title {
+      font-size: 18px; font-weight: 700; color: var(--color-text-primary);
+    }
+    .catalog-count {
+      font-size: 13px; color: var(--color-text-secondary);
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      padding: 4px 10px; border-radius: var(--radius-full);
+    }
+    .catalog-sort {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--color-text-secondary);
+    }
+    .catalog-sort select {
+      height: 34px; padding: 0 10px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 13px;
+      color: var(--color-text-primary); background: #fff;
+      outline: none; cursor: pointer;
+    }
+
+    /* Grid de productos */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    /* ── Card de producto ── */
+    .product-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .product-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    /* Imagen placeholder */
+    .product-img {
+      background: linear-gradient(135deg, var(--color-bg-card) 0%, #D6EEF5 100%);
+      height: 140px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .product-img svg { width: 48px; height: 48px; color: var(--color-primary-light); opacity: 0.6; }
+
+    .product-img-badge {
+      position: absolute; top: 10px; left: 10px;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--color-success-soft);
+      color: var(--color-success);
+      font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: var(--radius-full);
+      border: 1px solid rgba(39,174,96,0.2);
+    }
+    .product-img-badge svg { width: 10px; height: 10px; }
+
+    .product-img-badge.no-stock {
+      background: #F0F0F0; color: var(--color-text-secondary);
+      border-color: var(--color-border);
+    }
+
+    /* Cuerpo de la card */
+    .product-body {
+      padding: 14px 14px 16px;
+      display: flex; flex-direction: column; flex: 1;
+    }
+
+    .product-name {
+      font-size: 13px; font-weight: 700;
+      color: var(--color-text-primary);
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    .product-principle {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin-bottom: 4px; line-height: 1.3;
+    }
+
+    .product-lab {
+      font-size: 11px; color: var(--color-text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .product-price-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-top: auto; padding-top: 10px;
+      border-top: 1px solid var(--color-bg-card);
+    }
+
+    .product-price {
+      font-size: 17px; font-weight: 700;
+      color: var(--color-success);
+    }
+
+    .product-unit {
+      font-size: 11px; color: var(--color-text-secondary);
+      margin-top: 1px;
+    }
+
+    .btn-add-cart {
+      height: 34px; padding: 0 12px;
+      background: var(--color-primary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-add-cart svg { width: 13px; height: 13px; }
+    .btn-add-cart:hover { background: var(--color-primary-light); }
+    .btn-add-cart:disabled {
+      background: #E0E6EA; color: var(--color-text-secondary);
+      cursor: not-allowed;
+    }
+
+    /* ============================================================
+       PANEL CARRITO — Derecha (sticky)
+    ============================================================ */
+    .cart-panel {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      position: sticky;
+      top: calc(var(--navbar-height) + var(--catbar-height) + 20px);
+    }
+
+    .cart-panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg-main);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cart-panel-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 700; color: var(--color-text-primary);
+    }
+    .cart-panel-title svg { width: 17px; height: 17px; color: var(--color-primary); }
+    .cart-items-count {
+      background: var(--color-primary); color: #fff;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--radius-full);
+    }
+
+    .cart-panel-body { padding: 16px 20px; }
+
+    /* Item del carrito */
+    .cart-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-bg-main);
+    }
+    .cart-item:last-of-type { border-bottom: none; }
+
+    .cart-item-icon {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: var(--color-bg-card);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 1px solid var(--color-border);
+    }
+    .cart-item-icon svg { width: 17px; height: 17px; color: var(--color-primary); }
+
+    .cart-item-info { flex: 1; min-width: 0; }
+    .cart-item-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cart-item-qty {
+      font-size: 12px; color: var(--color-text-secondary); margin-top: 2px;
+    }
+
+    .cart-item-price {
+      font-size: 13px; font-weight: 700;
+      color: var(--color-text-primary); white-space: nowrap; flex-shrink: 0;
+    }
+
+    .cart-empty {
+      text-align: center; padding: 24px 0;
+      color: var(--color-text-secondary); font-size: 13px;
+    }
+    .cart-empty svg { width: 36px; height: 36px; opacity: 0.3; margin-bottom: 8px; display: block; margin-inline: auto; }
+
+    /* Totales del carrito */
+    .cart-totals {
+      border-top: 1px solid var(--color-border);
+      padding: 14px 0 0;
+      margin-top: 4px;
+    }
+    .cart-total-row {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--color-text-secondary);
+      padding: 3px 0;
+    }
+    .cart-total-row.grand {
+      font-size: 15px; font-weight: 700;
+      color: var(--color-text-primary);
+      border-top: 1px dashed var(--color-border);
+      margin-top: 8px; padding-top: 10px;
+    }
+    .cart-total-row.grand .val { color: var(--color-success); }
+
+    .btn-checkout {
+      width: 100%; height: 46px;
+      background: var(--color-secondary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 15px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 14px;
+      box-shadow: 0 4px 14px rgba(42,157,143,0.35);
+      transition: background 0.15s;
+    }
+    .btn-checkout:hover { background: #239B8C; }
+    .btn-checkout svg { width: 18px; height: 18px; }
+
+    .btn-keep-shopping {
+      width: 100%; height: 38px;
+      background: transparent; color: var(--color-text-secondary);
+      border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 13px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 8px; transition: all 0.15s;
+    }
+    .btn-keep-shopping:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .btn-keep-shopping svg { width: 14px; height: 14px; }
+
+    /* Envío en carrito */
+    .cart-shipping-note {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-success);
+      background: var(--color-success-soft);
+      border-radius: var(--radius-md);
+      padding: 8px 10px; margin-top: 12px;
+    }
+    .cart-shipping-note svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ============================================================
+       TOAST
+    ============================================================ */
+    .toast-container {
+      position: fixed; top: 80px; right: 24px;
+      z-index: 999; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 16px; border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      min-width: 260px; max-width: 340px;
+      animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    .toast.success { background: var(--color-success-soft); border-left: 4px solid var(--color-success); }
+    .toast.warning { background: var(--color-warning-soft); border-left: 4px solid var(--color-warning); }
+    .toast.info    { background: #EBF5FB; border-left: 4px solid #3498DB; }
+    .toast svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+    .toast.success svg { color: var(--color-success); }
+    .toast.warning svg { color: var(--color-warning); }
+    .toast.info    svg { color: #3498DB; }
+    .toast-text { font-size: 14px; color: var(--color-text-primary); }
+    .toast-text strong { display: block; font-weight: 600; margin-bottom: 1px; }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1100px) {
+      .store-layout { grid-template-columns: 1fr 280px; padding: 20px 20px 40px; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 767px) {
+      .navbar { padding: 0 16px; }
+      .navbar-search { max-width: none; flex: 1; }
+      .navbar-btn-ghost { display: none; }
+      .catbar { padding: 0 16px; }
+      .store-layout {
+        grid-template-columns: 1fr;
+        padding: 16px 16px 40px;
+      }
+      .cart-panel {
+        position: static;
+        order: -1;
+      }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .products-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================================
+     NAVBAR SUPERIOR
+============================================================ -->
+<header class="navbar" role="banner">
+
+  <a href="#" class="navbar-logo">
+    <div class="navbar-logo-icon"><i data-lucide="pill"></i></div>
+    <span class="navbar-logo-name">Farma<span>Plus</span></span>
+  </a>
+
+  <div class="navbar-divider"></div>
+
+  <!-- Buscador central -->
+  <div class="navbar-search">
+    <i data-lucide="search" class="navbar-search-icon"></i>
+    <input
+      type="text"
+      placeholder="Buscar medicamentos, vitaminas…"
+      oninput="filterProducts(this.value)"
+      id="searchInput"
+    />
+  </div>
+
+  <div class="navbar-right">
+    <a href="#" class="navbar-btn navbar-btn-ghost">
+      <i data-lucide="user"></i>Mi cuenta
+    </a>
+    <a href="#" class="navbar-btn navbar-btn-ghost">
+      <i data-lucide="clock"></i>Mis pedidos
+    </a>
+    <button class="cart-btn" onclick="scrollToCart()">
+      <i data-lucide="shopping-cart"></i>
+      Carrito
+      <span class="cart-count" id="cartCount">2</span>
+    </button>
+  </div>
+
+</header>
+
+<!-- ============================================================
+     BARRA DE CATEGORÍAS
+============================================================ -->
+<nav class="catbar" aria-label="Categorías de productos">
+  <button class="cat-pill active" onclick="filterCat(this,'all')">
+    <i data-lucide="layout-grid"></i>Todos
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'antibiotico')">
+    <i data-lucide="pill"></i>Antibióticos
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'analgesico')">
+    <i data-lucide="activity"></i>Analgésicos
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'antialergico')">
+    <i data-lucide="wind"></i>Antialérgicos
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'gastro')">
+    <i data-lucide="shield"></i>Gastrointestinal
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'vitaminas')">
+    <i data-lucide="sun"></i>Vitaminas
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'dermato')">
+    <i data-lucide="droplets"></i>Dermatología
+  </button>
+  <button class="cat-pill" onclick="filterCat(this,'cardiovascular')">
+    <i data-lucide="heart-pulse"></i>Cardiovascular
+  </button>
+</nav>
+
+<!-- ============================================================
+     LAYOUT TIENDA
+============================================================ -->
+<div class="store-layout">
+
+  <!-- COLUMNA CATÁLOGO -->
+  <section class="catalog-col" aria-label="Catálogo de productos">
+
+    <div class="catalog-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="catalog-title">Catálogo</span>
+        <span class="catalog-count" id="catalogCount">9 productos</span>
+      </div>
+      <div class="catalog-sort">
+        <span>Ordenar:</span>
+        <select>
+          <option>Relevancia</option>
+          <option>Precio: menor a mayor</option>
+          <option>Precio: mayor a menor</option>
+          <option>Nombre A–Z</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+
+      <!-- ── PRODUCTO 1 ── Amoxicilina Mk 500mg -->
+      <div class="product-card" data-cat="antibiotico" data-name="amoxicilina mk 500mg capsulas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Amoxicilina Mk 500mg x 10 cápsulas</div>
+          <div class="product-principle">Amoxicilina trihidrato</div>
+          <div class="product-lab">Laboratorio MK S.A.S.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$12.500</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Amoxicilina Mk 500mg','$12.500')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 2 ── Loratadina Mk 10mg -->
+      <div class="product-card" data-cat="antialergico" data-name="loratadina mk 10mg tabletas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Loratadina Mk 10mg x 10 tabletas</div>
+          <div class="product-principle">Loratadina</div>
+          <div class="product-lab">Laboratorio MK S.A.S.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$8.900</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Loratadina Mk 10mg','$8.900')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 3 ── Omeprazol Genfar 20mg -->
+      <div class="product-card" data-cat="gastro" data-name="omeprazol genfar 20mg capsulas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Omeprazol Genfar 20mg x 14 cápsulas</div>
+          <div class="product-principle">Omeprazol</div>
+          <div class="product-lab">Genfar S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$11.200</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Omeprazol Genfar 20mg','$11.200')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 4 ── Cetirizina Bayer 10mg -->
+      <div class="product-card" data-cat="antialergico" data-name="cetirizina bayer 10mg tabletas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Cetirizina Bayer 10mg x 10 tabletas</div>
+          <div class="product-principle">Clorhidrato de cetirizina</div>
+          <div class="product-lab">Bayer S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$9.400</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Cetirizina Bayer 10mg','$9.400')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 5 ── Vitamina C Lafrancol 500mg -->
+      <div class="product-card" data-cat="vitaminas" data-name="vitamina c lafrancol 500mg tabletas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Vitamina C Lafrancol 500mg x 20 tabletas</div>
+          <div class="product-principle">Ácido ascórbico</div>
+          <div class="product-lab">Lafrancol S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$7.500</div>
+              <div class="product-unit">por frasco</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Vitamina C Lafrancol 500mg','$7.500')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 6 ── Ibuprofeno Lafrancol 400mg -->
+      <div class="product-card" data-cat="analgesico" data-name="ibuprofeno lafrancol 400mg tabletas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Ibuprofeno Lafrancol 400mg x 10 tabletas</div>
+          <div class="product-principle">Ibuprofeno</div>
+          <div class="product-lab">Lafrancol S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$6.800</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Ibuprofeno Lafrancol 400mg','$6.800')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 7 ── Acetaminofén Genfar 500mg — SIN STOCK -->
+      <div class="product-card" data-cat="analgesico" data-name="acetaminofen genfar 500mg tabletas">
+        <div class="product-img" style="opacity:0.7;">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge no-stock">
+            Sin stock
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name" style="color:var(--color-text-secondary);">Acetaminofén Genfar 500mg x 10 tabletas</div>
+          <div class="product-principle">Paracetamol</div>
+          <div class="product-lab">Genfar S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price" style="color:var(--color-text-secondary);">$5.200</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" disabled>
+              <i data-lucide="x"></i>Sin stock
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 8 ── Clotrimazol Mk 1% crema -->
+      <div class="product-card" data-cat="dermato" data-name="clotrimazol mk 1 crema dermatologica">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Clotrimazol Mk 1% Crema x 20g</div>
+          <div class="product-principle">Clotrimazol</div>
+          <div class="product-lab">Laboratorio MK S.A.S.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$14.300</div>
+              <div class="product-unit">por tubo</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Clotrimazol Mk 1% Crema','$14.300')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTO 9 ── Enalapril Genfar 10mg -->
+      <div class="product-card" data-cat="cardiovascular" data-name="enalapril genfar 10mg tabletas">
+        <div class="product-img">
+          <i data-lucide="pill"></i>
+          <span class="product-img-badge">
+            <i data-lucide="circle-check"></i>Venta libre
+          </span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">Enalapril Genfar 10mg x 30 tabletas</div>
+          <div class="product-principle">Maleato de enalapril</div>
+          <div class="product-lab">Genfar S.A.</div>
+          <div class="product-price-row">
+            <div>
+              <div class="product-price">$18.600</div>
+              <div class="product-unit">por caja</div>
+            </div>
+            <button class="btn-add-cart" onclick="addToCart(this,'Enalapril Genfar 10mg','$18.600')">
+              <i data-lucide="plus"></i>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /#productsGrid -->
+
+    <!-- Mensaje sin resultados -->
+    <div id="emptyState" style="display:none; text-align:center; padding:48px 0; color:var(--color-text-secondary);">
+      <i data-lucide="search-x" style="width:48px;height:48px;opacity:0.3;margin:0 auto 12px;display:block;"></i>
+      <div style="font-size:15px;font-weight:600;margin-bottom:4px;">Sin resultados</div>
+      <div style="font-size:13px;">Intente con otro término o categoría.</div>
+    </div>
+
+  </section>
+
+  <!-- PANEL CARRITO -->
+  <aside class="cart-panel" id="cartPanel" aria-label="Carrito de compras">
+
+    <div class="cart-panel-header">
+      <div class="cart-panel-title">
+        <i data-lucide="shopping-cart"></i>Mi carrito
+      </div>
+      <span class="cart-items-count" id="cartItemsCount">2 ítems</span>
+    </div>
+
+    <div class="cart-panel-body">
+
+      <!-- Items del carrito — pre-llenados -->
+      <div id="cartItemsList">
+
+        <div class="cart-item" id="ci-1">
+          <div class="cart-item-icon"><i data-lucide="pill"></i></div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">Omeprazol Genfar 20mg</div>
+            <div class="cart-item-qty">× 1 — $11.200 c/u</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="cart-item-price">$11.200</span>
+            <button onclick="removeCartItem('ci-1',11200)" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:11px;display:flex;align-items:center;gap:2px;" title="Eliminar">
+              <i data-lucide="x" style="width:11px;height:11px;"></i>quitar
+            </button>
+          </div>
+        </div>
+
+        <div class="cart-item" id="ci-2">
+          <div class="cart-item-icon"><i data-lucide="pill"></i></div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">Vitamina C Lafrancol 500mg</div>
+            <div class="cart-item-qty">× 2 — $7.500 c/u</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="cart-item-price">$15.000</span>
+            <button onclick="removeCartItem('ci-2',15000)" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:11px;display:flex;align-items:center;gap:2px;" title="Eliminar">
+              <i data-lucide="x" style="width:11px;height:11px;"></i>quitar
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /#cartItemsList -->
+
+      <!-- Totales -->
+      <div class="cart-totals" id="cartTotals">
+        <div class="cart-total-row">
+          <span>Subtotal</span>
+          <span id="subtotalVal">$26.200</span>
+        </div>
+        <div class="cart-total-row">
+          <span>Envío</span>
+          <span style="color:var(--color-text-secondary);">Se calcula al pagar</span>
+        </div>
+        <div class="cart-total-row grand">
+          <span>Estimado</span>
+          <span class="val" id="grandVal">$26.200</span>
+        </div>
+      </div>
+
+      <div class="cart-shipping-note">
+        <i data-lucide="truck"></i>
+        Domicilio disponible en Neiva y municipios del Huila
+      </div>
+
+      <button class="btn-checkout" onclick="showToast('Continuando al checkout…','success')">
+        <i data-lucide="arrow-right"></i>Ir al checkout
+      </button>
+      <button class="btn-keep-shopping" onclick="showToast('Sigue explorando el catálogo','info')">
+        <i data-lucide="shopping-bag"></i>Seguir comprando
+      </button>
+
+    </div>
+  </aside>
+
+</div><!-- /.store-layout -->
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+  lucide.createIcons();
+
+  /* Estado del carrito */
+  let cartCount  = 2;
+  let subtotal   = 26200;
+
+  /* ── Agregar al carrito ──────────────────────────────── */
+  function addToCart(btn, nombre, precioStr) {
+    const precio = parseInt(precioStr.replace(/\D/g, ''));
+
+    /* Animar botón */
+    btn.innerHTML = '<i data-lucide="check"></i>¡Agregado!';
+    btn.style.background = 'var(--color-success)';
+    lucide.createIcons();
+
+    setTimeout(() => {
+      btn.innerHTML = '<i data-lucide="plus"></i>Agregar';
+      btn.style.background = '';
+      lucide.createIcons();
+    }, 1500);
+
+    /* Actualizar contador del carrito */
+    cartCount++;
+    subtotal += precio;
+    updateCartUI(nombre, precio);
+    showToast(`"${nombre}" agregado al carrito.`, 'success');
+  }
+
+  /* ── Eliminar item del carrito ────────────────────────── */
+  function removeCartItem(id, monto) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'opacity 0.25s';
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.remove();
+      cartCount = Math.max(0, cartCount - 1);
+      subtotal  = Math.max(0, subtotal - monto);
+      refreshCartTotals();
+      showToast('Producto quitado del carrito.', 'warning');
+    }, 250);
+  }
+
+  /* ── Actualizar UI del carrito ──────────────────────── */
+  function updateCartUI(nombre, precio) {
+    const list = document.getElementById('cartItemsList');
+    const id   = 'ci-dyn-' + Date.now();
+    const div  = document.createElement('div');
+    div.className = 'cart-item';
+    div.id = id;
+    div.innerHTML = `
+      <div class="cart-item-icon"><i data-lucide="pill"></i></div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${nombre}</div>
+        <div class="cart-item-qty">× 1 — ${formatCOP(precio)} c/u</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="cart-item-price">${formatCOP(precio)}</span>
+        <button onclick="removeCartItem('${id}',${precio})" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:11px;display:flex;align-items:center;gap:2px;">
+          <i data-lucide="x" style="width:11px;height:11px;"></i>quitar
+        </button>
+      </div>`;
+    list.appendChild(div);
+    lucide.createIcons();
+    refreshCartTotals();
+  }
+
+  function refreshCartTotals() {
+    document.getElementById('cartCount').textContent      = cartCount;
+    document.getElementById('cartItemsCount').textContent = cartCount + (cartCount === 1 ? ' ítem' : ' ítems');
+    document.getElementById('subtotalVal').textContent    = formatCOP(subtotal);
+    document.getElementById('grandVal').textContent       = formatCOP(subtotal);
+  }
+
+  function formatCOP(n) {
+    return '$' + n.toLocaleString('es-CO');
+  }
+
+  /* ── Filtrar por categoría ──────────────────────────── */
+  function filterCat(btn, cat) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    filterProducts(document.getElementById('searchInput').value, cat);
+  }
+
+  /* ── Filtrar por búsqueda ───────────────────────────── */
+  function filterProducts(query, cat) {
+    cat = cat || getActiveCat();
+    const q     = query.toLowerCase();
+    const cards = document.querySelectorAll('.product-card');
+    let visible = 0;
+
+    cards.forEach(card => {
+      const name    = card.dataset.name || '';
+      const cardCat = card.dataset.cat  || '';
+      const matchQ  = !q || name.includes(q);
+      const matchC  = cat === 'all' || cardCat === cat;
+      const show    = matchQ && matchC;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    document.getElementById('catalogCount').textContent = visible + ' producto' + (visible !== 1 ? 's' : '');
+    document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+    lucide.createIcons();
+  }
+
+  function getActiveCat() {
+    const active = document.querySelector('.cat-pill.active');
+    if (!active) return 'all';
+    const onclick = active.getAttribute('onclick') || '';
+    const m = onclick.match(/'([^']+)'\)/);
+    return m ? m[1] : 'all';
+  }
+
+  function scrollToCart() {
+    document.getElementById('cartPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ── Toast ──────────────────────────────────────────── */
+  function showToast(msg, type = 'success') {
+    const icons  = { success:'circle-check', warning:'alert-triangle', info:'info' };
+    const labels = { success:'Listo', warning:'Atención', info:'Info' };
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i data-lucide="${icons[type]}"></i>
+      <div class="toast-text"><strong>${labels[type]}</strong>${msg}</div>`;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s, transform 0.3s';
+      toast.style.opacity    = '0';
+      toast.style.transform  = 'translateX(120%)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+</script>
+</body>
+</html>

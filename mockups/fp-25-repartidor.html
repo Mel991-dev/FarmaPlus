@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmaPlus CRM — Panel del Repartidor</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ============================================================
+       ROOT — Design Tokens
+    ============================================================ */
+    :root {
+      --color-primary:        #1A6B8A;
+      --color-primary-dark:   #1A3A4A;
+      --color-primary-light:  #4A9BB5;
+      --color-secondary:      #2A9D8F;
+      --color-bg-main:        #F4F9FC;
+      --color-bg-card:        #E9F5F8;
+      --color-success:        #27AE60;
+      --color-error:          #E74C3C;
+      --color-warning:        #F39C12;
+      --color-info:           #3498DB;
+      --color-success-soft:   #EAFAF1;
+      --color-error-soft:     #FDEDEC;
+      --color-warning-soft:   #FEF9E7;
+      --color-info-soft:      #EBF5FB;
+      --color-text-primary:   #2C3E50;
+      --color-text-secondary: #7F8C8D;
+      --color-border:         #BDC3C7;
+      --color-sidebar-bg:     #1A3A4A;
+      --color-sidebar-text:   #ECF0F1;
+      --color-sidebar-active: #2A9D8F;
+      --color-sidebar-hover:  #1A6B8A;
+
+      --radius-sm:   4px;
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-xl:   16px;
+      --radius-full: 9999px;
+
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --sidebar-width:  240px;
+      --topbar-height:  64px;
+
+      --shadow-card:  0 2px 8px rgba(0,0,0,0.08);
+      --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-focus: 0 0 0 3px rgba(26,107,138,0.15);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-main);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      background: var(--color-bg-main);
+    }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    /* ============================================================
+       SIDEBAR — Simplificado para repartidor (solo sus secciones)
+    ============================================================ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--color-sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; z-index: 100;
+      transition: transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 24px 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .sidebar-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--color-secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sidebar-logo-icon svg { color: #fff; width: 20px; height: 20px; }
+    .sidebar-logo-text { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .sidebar-logo-text span { color: var(--color-secondary); }
+
+    .sidebar-nav {
+      flex: 1; padding: 16px 12px;
+      overflow-y: auto; scrollbar-width: none;
+    }
+    .sidebar-nav::-webkit-scrollbar { display: none; }
+
+    .nav-section-label {
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: rgba(236,240,241,0.35);
+      padding: 0 8px; margin: 16px 0 8px; display: block;
+    }
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; text-decoration: none;
+      color: var(--color-sidebar-text);
+      font-size: 14px; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover  { background: var(--color-sidebar-hover); }
+    .nav-item.active { background: var(--color-sidebar-active); color: #fff; }
+    .nav-item svg    { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.85; }
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.85);
+      font-size: 11px; font-weight: 600;
+      padding: 2px 7px; border-radius: var(--radius-full);
+      min-width: 20px; text-align: center;
+    }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,0.25); color: #fff; }
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 12px; }
+
+    /* Banner de rol dentro del sidebar */
+    .sidebar-role-banner {
+      margin: 0 12px 4px;
+      background: rgba(42,157,143,0.15);
+      border: 1px solid rgba(42,157,143,0.3);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sidebar-role-banner svg { width: 15px; height: 15px; color: var(--color-secondary); flex-shrink: 0; }
+    .sidebar-role-banner-text { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.35; }
+    .sidebar-role-banner-text strong { color: var(--color-secondary); font-weight: 600; display: block; }
+
+    .sidebar-footer { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .sidebar-user:hover { background: rgba(255,255,255,0.06); }
+    .sidebar-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: rgba(236,240,241,0.5); margin-top: 1px; }
+    .sidebar-logout {
+      background: none; border: none; cursor: pointer;
+      color: rgba(236,240,241,0.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px; border-radius: var(--radius-sm); transition: color 0.2s;
+    }
+    .sidebar-logout:hover { color: var(--color-error); }
+    .sidebar-logout svg { width: 16px; height: 16px; }
+
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 90;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    /* ============================================================
+       TOPBAR — idéntico al fp-18
+    ============================================================ */
+    .topbar {
+      height: var(--topbar-height); background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex; align-items: center;
+      padding: 0 24px 0 calc(var(--sidebar-width) + 24px);
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 50; gap: 16px;
+    }
+    .topbar-toggle {
+      display: none; background: none; border: none;
+      cursor: pointer; color: var(--color-text-secondary);
+      padding: 6px; border-radius: var(--radius-md);
+    }
+    .topbar-toggle svg { width: 22px; height: 22px; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb-item {
+      font-size: 13px; color: var(--color-text-secondary);
+      text-decoration: none; transition: color 0.15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .breadcrumb-item:hover { color: var(--color-primary); }
+    .breadcrumb-item.current { font-weight: 600; color: var(--color-text-primary); pointer-events: none; }
+    .breadcrumb-sep { color: var(--color-border); font-size: 13px; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .topbar-icon-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-text-secondary);
+      transition: background 0.15s, color 0.15s; position: relative;
+    }
+    .topbar-icon-btn:hover { background: var(--color-bg-main); color: var(--color-primary); }
+    .topbar-icon-btn svg { width: 20px; height: 20px; }
+    .notif-dot {
+      position: absolute; top: 7px; right: 7px;
+      width: 8px; height: 8px;
+      background: var(--color-error); border-radius: 50%; border: 2px solid #fff;
+    }
+    .topbar-user {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px 4px 4px; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
+      border: none; background: none;
+    }
+    .topbar-user:hover { background: var(--color-bg-main); }
+    .topbar-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-warning);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+    }
+    .topbar-user-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); line-height: 1.2; }
+    .topbar-user-role { font-size: 11px; color: var(--color-text-secondary); }
+
+    /* ============================================================
+       CONTENIDO PRINCIPAL — idéntico al fp-18
+    ============================================================ */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--topbar-height);
+      padding: 28px 32px;
+      flex: 1;
+      min-height: calc(100vh - var(--topbar-height));
+    }
+
+    /* ============================================================
+       PAGE HEADER
+    ============================================================ */
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-left { display: flex; align-items: center; gap: 14px; }
+    .page-title-block h1 {
+      font-size: 22px; font-weight: 700; color: var(--color-text-primary);
+      display: flex; align-items: center; gap: 10px; letter-spacing: -0.3px;
+    }
+    .page-title-block p { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+
+    /* ============================================================
+       STATS DEL DÍA
+    ============================================================ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .stat-card-icon {
+      width: 44px; height: 44px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .stat-card-icon svg { width: 22px; height: 22px; }
+    .stat-card-icon.pending  { background: var(--color-info-soft);    }
+    .stat-card-icon.pending  svg { color: var(--color-info); }
+    .stat-card-icon.transit  { background: var(--color-warning-soft); }
+    .stat-card-icon.transit  svg { color: var(--color-warning); }
+    .stat-card-icon.done     { background: var(--color-success-soft); }
+    .stat-card-icon.done     svg { color: var(--color-success); }
+    .stat-card-icon.failed   { background: var(--color-error-soft);   }
+    .stat-card-icon.failed   svg { color: var(--color-error); }
+
+    .stat-card-info {}
+    .stat-card-num   { font-size: 26px; font-weight: 700; line-height: 1; color: var(--color-text-primary); }
+    .stat-card-label { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+
+    /* ============================================================
+       BOTONES — idéntico al fp-18
+    ============================================================ */
+    .btn-primary {
+      height: 42px; background: var(--color-primary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 18px; transition: background 0.2s; white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--color-primary-light); }
+    .btn-primary svg { width: 16px; height: 16px; }
+
+    .btn-secondary {
+      height: 42px; background: transparent;
+      border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 500;
+      color: var(--color-text-primary); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0 16px; transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--color-primary); background: var(--color-bg-card); color: var(--color-primary); }
+    .btn-secondary svg { width: 15px; height: 15px; }
+
+    .btn-success {
+      height: 42px; background: var(--color-success); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 18px; transition: background 0.2s;
+    }
+    .btn-success:hover { background: #1E8449; }
+    .btn-success svg { width: 16px; height: 16px; }
+
+    .btn-danger {
+      height: 42px; background: var(--color-error-soft);
+      border: 1.5px solid rgba(231,76,60,0.3); border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      color: var(--color-error); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0 16px; transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-danger:hover { background: #FDEDEC; border-color: var(--color-error); }
+    .btn-danger svg { width: 15px; height: 15px; }
+
+    .btn-warning {
+      height: 42px; background: var(--color-warning); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 18px; transition: background 0.2s;
+    }
+    .btn-warning:hover { background: #D68910; }
+    .btn-warning svg { width: 16px; height: 16px; }
+
+    /* ============================================================
+       CARDS DE PEDIDO
+    ============================================================ */
+    .delivery-cards { display: flex; flex-direction: column; gap: 16px; }
+
+    .delivery-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .delivery-card:hover { box-shadow: var(--shadow-hover); }
+
+    /* Borde lateral por estado */
+    .delivery-card.state-preparing { border-left: 4px solid var(--color-info); }
+    .delivery-card.state-transit   { border-left: 4px solid var(--color-warning); }
+    .delivery-card.state-done      { border-left: 4px solid var(--color-success); }
+
+    /* Header de la card */
+    .dc-header {
+      padding: 14px 20px;
+      background: var(--color-bg-main);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dc-header-left { display: flex; align-items: center; gap: 12px; }
+
+    .dc-order-num {
+      font-family: var(--font-mono);
+      font-size: 15px; font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    .dc-assigned {
+      font-size: 12px; color: var(--color-text-secondary);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .dc-assigned svg { width: 12px; height: 12px; }
+
+    /* Badges de estado */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: var(--radius-full);
+      font-size: 13px; font-weight: 600; white-space: nowrap;
+    }
+    .badge svg { width: 14px; height: 14px; }
+    .badge-confirmado  { background: var(--color-info-soft);    color: var(--color-info); }
+    .badge-preparando  { background: #EEF2FF;                   color: #5B52F0; }
+    .badge-en-camino   { background: var(--color-warning-soft); color: #D68910; }
+    .badge-entregado   { background: var(--color-success-soft); color: var(--color-success); }
+
+    /* Cuerpo de la card */
+    .dc-body {
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* Columna info cliente + dirección */
+    .dc-col-info {}
+
+    .dc-section-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .dc-section-label svg { width: 12px; height: 12px; color: var(--color-primary); }
+
+    .dc-client-name   { font-size: 15px; font-weight: 700; color: var(--color-text-primary); }
+    .dc-client-phone  {
+      font-size: 13px; color: var(--color-primary);
+      font-weight: 600; margin-top: 3px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .dc-client-phone svg { width: 13px; height: 13px; }
+
+    .dc-address {
+      margin-top: 14px;
+    }
+    .dc-address-line { font-size: 14px; font-weight: 600; color: var(--color-text-primary); line-height: 1.35; }
+    .dc-address-ref  { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+    .dc-address-city {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin-top: 4px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .dc-address-city svg { width: 12px; height: 12px; color: var(--color-primary); }
+
+    /* Columna productos + total */
+    .dc-col-products {}
+
+    .dc-products-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .dc-product-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; color: var(--color-text-primary);
+    }
+    .dc-product-item svg { width: 13px; height: 13px; color: var(--color-primary); flex-shrink: 0; }
+    .dc-product-qty {
+      font-size: 11px; font-weight: 600;
+      background: var(--color-bg-card);
+      color: var(--color-text-secondary);
+      padding: 1px 6px; border-radius: var(--radius-full);
+      margin-left: auto; flex-shrink: 0;
+    }
+
+    .dc-total-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0 0;
+      border-top: 1px dashed var(--color-border);
+      margin-top: 4px;
+    }
+    .dc-total-label { font-size: 12px; color: var(--color-text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .dc-total-val   { font-size: 18px; font-weight: 700; color: var(--color-success); }
+
+    /* Footer de acciones */
+    .dc-actions {
+      padding: 14px 20px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg-main);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+
+    /* ============================================================
+       MODAL — Reportar problema
+    ============================================================ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      max-width: 480px; width: 90%;
+      box-shadow: 0 16px 60px rgba(0,0,0,0.2);
+      overflow: hidden;
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.95) translateY(8px); opacity: 0; }
+      to   { transform: scale(1)    translateY(0);   opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--color-error-soft);
+    }
+    .modal-header-title {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 16px; font-weight: 700; color: var(--color-error);
+    }
+    .modal-header-title svg { width: 18px; height: 18px; }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-secondary); padding: 4px;
+      border-radius: var(--radius-sm); transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--color-error); }
+    .modal-close svg { width: 20px; height: 20px; display: block; }
+
+    .modal-body { padding: 22px; }
+
+    .modal-pedido-ref {
+      font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px;
+    }
+    .modal-pedido-ref span {
+      font-family: var(--font-mono); font-size: 13px; color: var(--color-primary); font-weight: 500;
+    }
+
+    .modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .modal-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+
+    .modal-select, .modal-textarea {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-main); font-size: 14px;
+      color: var(--color-text-primary); background: #fff;
+      outline: none; width: 100%;
+      transition: border 0.15s, box-shadow 0.15s;
+    }
+    .modal-select {
+      height: 46px; padding: 0 14px;
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237F8C8D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+    }
+    .modal-textarea {
+      min-height: 90px; padding: 12px 14px;
+      resize: vertical; line-height: 1.5;
+    }
+    .modal-select:focus, .modal-textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .modal-footer {
+      padding: 16px 22px;
+      border-top: 1px solid var(--color-border);
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    /* ============================================================
+       TOAST — idéntico al fp-18
+    ============================================================ */
+    .toast-container {
+      position: fixed; top: 80px; right: 24px;
+      z-index: 999; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 16px; border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      min-width: 280px; max-width: 360px;
+      animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    .toast.success { background: var(--color-success-soft); border-left: 4px solid var(--color-success); }
+    .toast.warning { background: var(--color-warning-soft); border-left: 4px solid var(--color-warning); }
+    .toast.info    { background: var(--color-info-soft);    border-left: 4px solid var(--color-info);    }
+    .toast.error   { background: var(--color-error-soft);   border-left: 4px solid var(--color-error);   }
+    .toast svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+    .toast.success svg { color: var(--color-success); }
+    .toast.warning svg { color: var(--color-warning); }
+    .toast.info    svg { color: var(--color-info); }
+    .toast.error   svg { color: var(--color-error); }
+    .toast-text { font-size: 14px; color: var(--color-text-primary); }
+    .toast-text strong { display: block; font-weight: 600; margin-bottom: 1px; }
+
+    /* ============================================================
+       RESPONSIVE — idéntico al fp-18
+    ============================================================ */
+    @media (max-width: 1023px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .topbar { padding: 0 16px; }
+      .topbar-toggle { display: flex; }
+      .main-content { margin-left: 0; padding: 20px 16px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .dc-body { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .page-header { flex-wrap: wrap; }
+      .dc-actions { gap: 8px; }
+      .dc-actions .btn-success,
+      .dc-actions .btn-warning,
+      .dc-actions .btn-danger,
+      .dc-actions .btn-secondary { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Modal reportar problema -->
+<div class="modal-overlay" id="modalProblema">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-title">
+        <i data-lucide="alert-triangle"></i>Reportar problema de entrega
+      </div>
+      <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-pedido-ref">
+        Pedido: <span id="modalPedidoNum">FP-2026-0341</span>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Razón del problema <span style="color:var(--color-error);">*</span></label>
+        <select class="modal-select" id="modalRazon">
+          <option value="">— Seleccione una razón —</option>
+          <option value="ausente">Cliente ausente — no atendió</option>
+          <option value="direccion">Dirección incorrecta o no encontrada</option>
+          <option value="rechazo">Cliente rechazó el pedido</option>
+          <option value="acceso">Sin acceso al edificio / conjunto</option>
+          <option value="pago">Problema con el pago en destino</option>
+          <option value="otro">Otro motivo</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Observaciones adicionales</label>
+        <textarea class="modal-textarea" id="modalObs" placeholder="Describa lo que ocurrió para registrar el incidente…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">
+        <i data-lucide="x"></i>Cancelar
+      </button>
+      <button class="btn-danger" onclick="enviarProblema()">
+        <i data-lucide="send"></i>Enviar reporte
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       SIDEBAR — Simplificado (solo secciones del repartidor)
+  ============================================================ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
+
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i data-lucide="pill"></i></div>
+      <span class="sidebar-logo-text">Farma<span>Plus</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <!-- Banner de rol -->
+      <div class="sidebar-role-banner">
+        <i data-lucide="truck"></i>
+        <div class="sidebar-role-banner-text">
+          <strong>Vista Repartidor</strong>
+          Solo ves tus pedidos asignados
+        </div>
+      </div>
+
+      <span class="nav-section-label">Principal</span>
+      <a href="fp-07-dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i>Inicio
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Mis entregas</span>
+      <a href="fp-25-repartidor.html" class="nav-item active" aria-current="page">
+        <i data-lucide="truck"></i>Mis entregas hoy
+        <span class="nav-badge">3</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="clock"></i>Historial de entregas
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <span class="nav-section-label">Mi cuenta</span>
+      <a href="#" class="nav-item">
+        <i data-lucide="user"></i>Mi perfil
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" style="background:var(--color-warning);">LP</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Luis Peña</div>
+          <div class="sidebar-user-role">Repartidor</div>
+        </div>
+        <button class="sidebar-logout" aria-label="Cerrar sesión"><i data-lucide="log-out"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       TOPBAR
+  ============================================================ -->
+  <header class="topbar" role="banner">
+    <button class="topbar-toggle" onclick="openSidebar()" aria-label="Abrir menú">
+      <i data-lucide="menu"></i>
+    </button>
+    <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <a href="fp-07-dashboard.html" class="breadcrumb-item">
+        <i data-lucide="home" style="width:13px;height:13px;"></i> Inicio
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-item current">Mis entregas</span>
+    </nav>
+    <div class="topbar-actions">
+      <button class="topbar-icon-btn" aria-label="Notificaciones">
+        <i data-lucide="bell"></i>
+        <span class="notif-dot"></span>
+      </button>
+      <button class="topbar-icon-btn" aria-label="Ayuda"><i data-lucide="help-circle"></i></button>
+      <button class="topbar-user">
+        <div class="topbar-avatar">LP</div>
+        <div class="topbar-user-info">
+          <div class="topbar-user-name">Luis Peña</div>
+          <div class="topbar-user-role">Repartidor</div>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       CONTENIDO PRINCIPAL
+  ============================================================ -->
+  <main class="main-content" role="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-title-block">
+          <h1>Mis entregas</h1>
+          <p>domingo, 15 de marzo de 2026 &nbsp;·&nbsp; Solo ves los pedidos asignados a ti</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         ESTADÍSTICAS DEL DÍA
+    ══════════════════════════════════════════════════════ -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-icon pending"><i data-lucide="clock"></i></div>
+        <div class="stat-card-info">
+          <div class="stat-card-num">1</div>
+          <div class="stat-card-label">Pendiente de salir</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon transit"><i data-lucide="navigation"></i></div>
+        <div class="stat-card-info">
+          <div class="stat-card-num">1</div>
+          <div class="stat-card-label">En camino</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon done"><i data-lucide="package-check"></i></div>
+        <div class="stat-card-info">
+          <div class="stat-card-num">1</div>
+          <div class="stat-card-label">Entregado hoy</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon failed"><i data-lucide="package-x"></i></div>
+        <div class="stat-card-info">
+          <div class="stat-card-num">0</div>
+          <div class="stat-card-label">Fallidos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         CARDS DE PEDIDO
+    ══════════════════════════════════════════════════════ -->
+    <div class="delivery-cards">
+
+      <!-- ─────────────────────────────────────────────────
+           PEDIDO 1 — Estado: Preparando → botón "Salir a entregar"
+      ───────────────────────────────────────────────── -->
+      <article class="delivery-card state-preparing" id="card-0341">
+        <div class="dc-header">
+          <div class="dc-header-left">
+            <span class="dc-order-num">FP-2026-0341</span>
+            <span class="dc-assigned">
+              <i data-lucide="clock"></i>Asignado a las 15:30 h
+            </span>
+          </div>
+          <span class="badge badge-preparando">
+            <i data-lucide="package"></i>Preparando
+          </span>
+        </div>
+
+        <div class="dc-body">
+          <!-- Columna cliente + dirección -->
+          <div class="dc-col-info">
+            <div class="dc-section-label"><i data-lucide="user"></i>Cliente</div>
+            <div class="dc-client-name">Sandra Milena Torres</div>
+            <div class="dc-client-phone"><i data-lucide="phone"></i>313 842 7651</div>
+
+            <div class="dc-address">
+              <div class="dc-section-label" style="margin-top:14px;"><i data-lucide="map-pin"></i>Dirección de entrega</div>
+              <div class="dc-address-line">Cra. 10 #15-42, Apto 301</div>
+              <div class="dc-address-ref">Barrio La Toma · Frente al parque infantil</div>
+              <div class="dc-address-city"><i data-lucide="map-pin"></i>Neiva, Huila · CP 410001</div>
+            </div>
+          </div>
+
+          <!-- Columna productos + total -->
+          <div class="dc-col-products">
+            <div class="dc-section-label"><i data-lucide="pill"></i>Productos del pedido</div>
+            <div class="dc-products-list">
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Omeprazol Genfar 20mg x 14
+                <span class="dc-product-qty">×1</span>
+              </div>
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Vitamina C Lafrancol 500mg x 20
+                <span class="dc-product-qty">×2</span>
+              </div>
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Loratadina Mk 10mg x 10
+                <span class="dc-product-qty">×1</span>
+              </div>
+            </div>
+            <div class="dc-total-row">
+              <span class="dc-total-label">Total del pedido</span>
+              <span class="dc-total-val">$39.600</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="dc-actions">
+          <button class="btn-warning" onclick="salirAEntregar('card-0341','FP-2026-0341')">
+            <i data-lucide="navigation"></i>Salir a entregar
+          </button>
+          <span style="font-size:12px;color:var(--color-text-secondary);margin-left:4px;">
+            El pedido está siendo empacado — sal cuando esté listo.
+          </span>
+        </div>
+      </article>
+
+      <!-- ─────────────────────────────────────────────────
+           PEDIDO 2 — Estado: En camino → "Marcar entregado" + "Reportar problema"
+      ───────────────────────────────────────────────── -->
+      <article class="delivery-card state-transit" id="card-0338">
+        <div class="dc-header">
+          <div class="dc-header-left">
+            <span class="dc-order-num">FP-2026-0338</span>
+            <span class="dc-assigned">
+              <i data-lucide="clock"></i>Asignado a las 14:10 h
+            </span>
+          </div>
+          <span class="badge badge-en-camino">
+            <i data-lucide="navigation"></i>En camino
+          </span>
+        </div>
+
+        <div class="dc-body">
+          <div class="dc-col-info">
+            <div class="dc-section-label"><i data-lucide="user"></i>Cliente</div>
+            <div class="dc-client-name">Carlos Eduardo Muñoz</div>
+            <div class="dc-client-phone"><i data-lucide="phone"></i>315 774 2890</div>
+
+            <div class="dc-address">
+              <div class="dc-section-label" style="margin-top:14px;"><i data-lucide="map-pin"></i>Dirección de entrega</div>
+              <div class="dc-address-line">Cl. 8 #4-90, Piso 2</div>
+              <div class="dc-address-ref">Barrio Miraflores · Torre B, timbre 201</div>
+              <div class="dc-address-city"><i data-lucide="map-pin"></i>Neiva, Huila · CP 410003</div>
+            </div>
+          </div>
+
+          <div class="dc-col-products">
+            <div class="dc-section-label"><i data-lucide="pill"></i>Productos del pedido</div>
+            <div class="dc-products-list">
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Amoxicilina Mk 500mg x 10
+                <span class="dc-product-qty">×1</span>
+              </div>
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Cetirizina Bayer 10mg x 10
+                <span class="dc-product-qty">×2</span>
+              </div>
+            </div>
+            <div class="dc-total-row">
+              <span class="dc-total-label">Total del pedido</span>
+              <span class="dc-total-val">$31.300</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dc-actions">
+          <button class="btn-success" onclick="marcarEntregado('card-0338','FP-2026-0338')">
+            <i data-lucide="package-check"></i>Marcar como entregado
+          </button>
+          <button class="btn-danger" onclick="abrirModalProblema('FP-2026-0338')">
+            <i data-lucide="alert-triangle"></i>Reportar problema
+          </button>
+        </div>
+      </article>
+
+      <!-- ─────────────────────────────────────────────────
+           PEDIDO 3 — Estado: Entregado (completado)
+      ───────────────────────────────────────────────── -->
+      <article class="delivery-card state-done" id="card-0332">
+        <div class="dc-header">
+          <div class="dc-header-left">
+            <span class="dc-order-num">FP-2026-0332</span>
+            <span class="dc-assigned">
+              <i data-lucide="clock"></i>Entregado a las 13:22 h
+            </span>
+          </div>
+          <span class="badge badge-entregado">
+            <i data-lucide="package-check"></i>Entregado
+          </span>
+        </div>
+
+        <div class="dc-body">
+          <div class="dc-col-info">
+            <div class="dc-section-label"><i data-lucide="user"></i>Cliente</div>
+            <div class="dc-client-name">Adriana Lucía Perdomo</div>
+            <div class="dc-client-phone"><i data-lucide="phone"></i>318 653 0412</div>
+
+            <div class="dc-address">
+              <div class="dc-section-label" style="margin-top:14px;"><i data-lucide="map-pin"></i>Dirección de entrega</div>
+              <div class="dc-address-line">Cra. 5 #22-15, Casa 3</div>
+              <div class="dc-address-ref">Barrio El Jardín · Casa blanca con portón azul</div>
+              <div class="dc-address-city"><i data-lucide="map-pin"></i>Neiva, Huila · CP 410002</div>
+            </div>
+          </div>
+
+          <div class="dc-col-products">
+            <div class="dc-section-label"><i data-lucide="pill"></i>Productos del pedido</div>
+            <div class="dc-products-list">
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Ibuprofeno Lafrancol 400mg x 10
+                <span class="dc-product-qty">×2</span>
+              </div>
+              <div class="dc-product-item">
+                <i data-lucide="pill"></i>
+                Clotrimazol Mk 1% Crema x 20g
+                <span class="dc-product-qty">×1</span>
+              </div>
+            </div>
+            <div class="dc-total-row">
+              <span class="dc-total-label">Total del pedido</span>
+              <span class="dc-total-val">$27.900</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones — pedido entregado, solo comprobante -->
+        <div class="dc-actions">
+          <button class="btn-secondary" onclick="showToast('Abriendo comprobante de entrega…','info')">
+            <i data-lucide="file-text"></i>Ver comprobante
+          </button>
+          <span style="font-size:12px;color:var(--color-success);display:flex;align-items:center;gap:4px;margin-left:4px;">
+            <i data-lucide="circle-check" style="width:13px;height:13px;"></i>
+            Entregado satisfactoriamente a las 13:22 h
+          </span>
+        </div>
+      </article>
+
+    </div><!-- /.delivery-cards -->
+
+  </main>
+</div><!-- /.app-shell -->
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+  lucide.createIcons();
+
+  /* ── Sidebar toggle ───────────────────────────────────── */
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('visible');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('visible');
+  }
+
+  /* ── Salir a entregar → cambia estado a En camino ────── */
+  function salirAEntregar(cardId, numPedido) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    /* Actualizar clase y borde */
+    card.className = 'delivery-card state-transit';
+
+    /* Actualizar badge */
+    const badge = card.querySelector('.badge');
+    badge.className = 'badge badge-en-camino';
+    badge.innerHTML = '<i data-lucide="navigation"></i>En camino';
+
+    /* Actualizar footer de acciones */
+    const actions = card.querySelector('.dc-actions');
+    actions.innerHTML = `
+      <button class="btn-success" onclick="marcarEntregado('${cardId}','${numPedido}')">
+        <i data-lucide="package-check"></i>Marcar como entregado
+      </button>
+      <button class="btn-danger" onclick="abrirModalProblema('${numPedido}')">
+        <i data-lucide="alert-triangle"></i>Reportar problema
+      </button>`;
+
+    lucide.createIcons();
+    showToast(`Pedido ${numPedido} marcado como En camino. ¡Buen viaje!`, 'success');
+  }
+
+  /* ── Marcar como entregado ───────────────────────────── */
+  function marcarEntregado(cardId, numPedido) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    card.className = 'delivery-card state-done';
+
+    const badge = card.querySelector('.badge');
+    badge.className = 'badge badge-entregado';
+    badge.innerHTML = '<i data-lucide="package-check"></i>Entregado';
+
+    const actions = card.querySelector('.dc-actions');
+    const now = new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+    actions.innerHTML = `
+      <button class="btn-secondary" onclick="showToast('Abriendo comprobante de entrega…','info')">
+        <i data-lucide="file-text"></i>Ver comprobante
+      </button>
+      <span style="font-size:12px;color:var(--color-success);display:flex;align-items:center;gap:4px;margin-left:4px;">
+        <i data-lucide="circle-check" style="width:13px;height:13px;"></i>
+        Entregado satisfactoriamente a las ${now}
+      </span>`;
+
+    lucide.createIcons();
+    showToast(`Pedido ${numPedido} entregado. ¡Excelente trabajo!`, 'success');
+
+    /* Actualizar stats */
+    document.querySelectorAll('.stat-card')[2].querySelector('.stat-card-num').textContent =
+      parseInt(document.querySelectorAll('.stat-card')[2].querySelector('.stat-card-num').textContent) + 1;
+    document.querySelectorAll('.stat-card')[1].querySelector('.stat-card-num').textContent =
+      Math.max(0, parseInt(document.querySelectorAll('.stat-card')[1].querySelector('.stat-card-num').textContent) - 1);
+  }
+
+  /* ── Modal reportar problema ─────────────────────────── */
+  let currentPedido = '';
+
+  function abrirModalProblema(numPedido) {
+    currentPedido = numPedido;
+    document.getElementById('modalPedidoNum').textContent = numPedido;
+    document.getElementById('modalRazon').value = '';
+    document.getElementById('modalObs').value   = '';
+    document.getElementById('modalProblema').classList.add('open');
+    lucide.createIcons();
+  }
+
+  function closeModal() {
+    document.getElementById('modalProblema').classList.remove('open');
+  }
+
+  function enviarProblema() {
+    const razon = document.getElementById('modalRazon').value;
+    if (!razon) {
+      showToast('Selecciona una razón antes de enviar.', 'warning');
+      return;
+    }
+    closeModal();
+    showToast(`Problema reportado para ${currentPedido}. Supervisora notificada.`, 'warning');
+  }
+
+  /* Cerrar modal al hacer clic en el overlay */
+  document.getElementById('modalProblema').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── Toast — idéntico al fp-18 ───────────────────────── */
+  function showToast(msg, type = 'success') {
+    const icons  = { success:'circle-check', warning:'alert-triangle', info:'info', error:'circle-x' };
+    const labels = { success:'Éxito', warning:'Advertencia', info:'Información', error:'Error' };
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i data-lucide="${icons[type]}"></i>
+      <div class="toast-text"><strong>${labels[type]}</strong>${msg}</div>`;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s, transform 0.3s';
+      toast.style.opacity    = '0';
+      toast.style.transform  = 'translateX(120%)';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+</script>
+</body>
+</html>

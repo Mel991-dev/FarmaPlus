@@ -1,0 +1,471 @@
+Eres un experto en diseño UX/UI y desarrollo frontend. Necesito que me
+ayudes a crear los mockups en código HTML/CSS de un sistema CRM para
+una droguería colombiana llamada FarmaPlus.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTEXTO DEL PROYECTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sistema: FarmaPlus CRM — sistema de gestión integral para una
+droguería pequeña de una sola sede en Colombia (menos de 20 empleados).
+
+Propósito: Centralizar la gestión de inventario farmacéutico por
+lotes (método FEFO), ventas presenciales y en línea, servicio de
+domicilios con cálculo automático de tarifas, gestión de clientes
+y reportes gerenciales. El sistema debe cumplir con la normativa
+colombiana vigente (Resolución 1403/2007, Decreto 677/1995 INVIMA,
+Ley 2300/2023, Ley 1581/2012 Habeas Data).
+
+Módulos del sistema:
+1. Autenticación y control de acceso por roles (RBAC)
+2. Gestión de clientes — registro con consentimiento Ley 1581,
+   múltiples direcciones de entrega, historial de pedidos
+3. Gestión de productos farmacéuticos — catálogo con principio
+   activo, laboratorio/proveedor, código INVIMA (obligatorio),
+   tipo de venta (libre / control especial), stock mínimo,
+   precio compra/venta, forma farmacéutica, unidad de medida
+4. Control de inventario por lotes — registro de entradas con
+   número de lote, fecha de vencimiento, proveedor; método FEFO;
+   alertas automáticas de stock mínimo y vencimiento < 30 días
+5. Ventas presenciales (POS) — carrito, validación de fórmula
+   médica para control especial, comprobante digital, FEFO
+6. E-commerce (tienda en línea para clientes) — catálogo
+   filtrado (sin control especial), carrito, checkout,
+   cálculo de domicilio, pago por MercadoPago (PSE/Nequi/tarjeta)
+7. Domicilios — seguimiento de pedidos, estados, panel repartidor
+8. Reportes y dashboard gerencial — KPIs, exportación PDF/Excel
+
+Roles de usuario:
+- Administrador: acceso total, gestión de usuarios, configuración
+  del sistema (tarifas domicilio, zonas de cobertura, stock mínimo)
+- Gerente del local: dashboard operativo, supervisión de personal,
+  gestión de devoluciones, reportes
+- Auxiliar / Gestor de stock: CRUD de productos, registro de lotes,
+  gestión de alertas y proveedores
+- Vendedor: ventas presenciales POS, consulta de catálogo
+- Repartidor: lista de pedidos asignados, actualización de estados
+- Cliente: catálogo en línea, carrito, checkout, historial de pedidos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARQUITECTURA GENERAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Arquitectura monolítica MVC en capas:
+- Backend: PHP 8.2 + Slim Framework 4 (MVC, PDO puro, sin ORM)
+- Frontend: HTML5 + CSS3 + JavaScript vanilla + Tailwind CSS 3
+- Base de datos: MySQL 8.0 (13 tablas, 3FN)
+- Correos: PHPMailer | Pagos: MercadoPago SDK PHP
+
+Layout general (panel interno — roles empleados):
+- Desktop (≥1024px): Sidebar fijo izquierdo 240px + Topbar 64px
+  + área de contenido flex
+- Tablet (768–1023px): Sidebar colapsable con toggle
+- Mobile (<768px): Bottom navigation bar + sidebar como drawer
+
+Layout tienda (vista cliente externo):
+- Navbar superior con carrito flotante
+- Grid de productos responsivo
+- Flujo de checkout en pasos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SISTEMA DE DISEÑO — SEGUIR ESTRICTAMENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PALETA DE COLORES:
+--color-primary:        #1A6B8A   /* Azul médico — principal */
+--color-primary-dark:   #1A3A4A   /* Azul noche — sidebar, headers */
+--color-primary-light:  #4A9BB5   /* Azul medio — hover, links */
+--color-secondary:      #2A9D8F   /* Verde salud — acciones, éxito */
+--color-bg-main:        #F4F9FC   /* Blanco clínico — fondo general */
+--color-bg-card:        #E9F5F8   /* Azul hielo — fondo de cards */
+--color-success:        #27AE60
+--color-error:          #E74C3C
+--color-warning:        #F39C12
+--color-info:           #3498DB
+--color-success-soft:   #EAFAF1
+--color-error-soft:     #FDEDEC
+--color-warning-soft:   #FEF9E7
+--color-info-soft:      #EBF5FB
+--color-text-primary:   #2C3E50
+--color-text-secondary: #7F8C8D
+--color-border:         #BDC3C7
+--color-sidebar-bg:     #1A3A4A
+--color-sidebar-text:   #ECF0F1
+--color-sidebar-active: #2A9D8F
+--color-sidebar-hover:  #1A6B8A
+
+TIPOGRAFÍA:
+- Fuente principal: Inter (Google Fonts) — pesos 400, 500, 600, 700
+- Fuente monospace: JetBrains Mono — para códigos INVIMA, números
+  de lote, comprobantes de venta, referencias de pedido
+- Escala base: 16px
+- H1: 24px 700 | H2: 20px 600 | H3: 18px 600
+- Body: 16px 400 | Small: 14px 400 | Label: 14px 500 | Caption: 12px 400
+
+ESPACIADO: escala de 8px (4, 8, 12, 16, 20, 24, 32, 40, 48px)
+BORDER RADIUS: sm=4px | md=8px | lg=12px | full=9999px
+
+ICONOGRAFÍA: Lucide Icons exclusivamente
+Íconos principales por sección:
+- Dashboard:       LayoutDashboard
+- Clientes:        Users
+- Pedidos:         ShoppingBag
+- Ventas POS:      Receipt
+- Domicilios:      Truck
+- Productos:       Pill
+- Lotes:           Layers
+- Alertas:         AlertTriangle
+- Proveedores:     Building2
+- Reportes:        BarChart2
+- Usuarios:        ShieldCheck
+- Configuración:   Settings
+- Agregar:         Plus
+- Editar:          Pencil
+- Desactivar:      PowerOff
+- Buscar:          Search
+- Stock bajo:      AlertTriangle
+- Exportar:        Download
+- Logout:          LogOut
+- Control especial: FlaskConical
+- Vencimiento:     Clock
+- Comprobante:     FileText
+- Carrito:         ShoppingCart
+- Pago:            CreditCard
+- Estado en camino: Navigation
+- Estado entregado: PackageCheck
+
+COMPONENTES BASE:
+
+Botón primario:
+  bg #1A6B8A | texto blanco | Inter 600 16px | padding 10px 20px
+  border-radius 8px | hover bg #4A9BB5 | height 48px
+
+Botón secundario:
+  bg transparent | border 2px solid #1A6B8A | texto #1A6B8A
+  hover bg #E9F5F8
+
+Botón peligro:
+  bg #E74C3C | texto blanco | hover bg #C0392B
+
+Botón éxito:
+  bg #27AE60 | texto blanco | hover bg #1E8449
+
+Inputs:
+  height 48px | border 1.5px solid #BDC3C7 | border-radius 8px
+  padding 0 16px | font Inter 400 16px
+  focus: border #1A6B8A + box-shadow 0 0 0 3px rgba(26,107,138,0.15)
+  error: border #E74C3C + mensaje debajo 12px #E74C3C
+
+Badges de estado:
+  Activo:            bg #EAFAF1  texto #27AE60   ícono CircleCheck
+  Inactivo:          bg #FDEDEC  texto #E74C3C   ícono CircleX
+  Stock bajo:        bg #FEF9E7  texto #F39C12   ícono AlertTriangle
+  Vence pronto:      bg #FEF9E7  texto #F39C12   ícono Clock
+  Control especial:  bg #FDEDEC  texto #E74C3C   ícono FlaskConical
+  Venta libre:       bg #EAFAF1  texto #27AE60   ícono CircleCheck
+  Pedido confirmado: bg #EBF5FB  texto #3498DB   ícono ShoppingBag
+  En camino:         bg #FEF9E7  texto #F39C12   ícono Navigation
+  Entregado:         bg #EAFAF1  texto #27AE60   ícono PackageCheck
+  Devuelto:          bg #FDEDEC  texto #E74C3C   ícono RotateCcw
+  border-radius: 9999px | padding: 4px 10px | font: Inter 500 12px
+
+Toasts (top-right, 4s, slide-in):
+  Éxito:       bg #EAFAF1  border-left 4px solid #27AE60
+  Error:       bg #FDEDEC  border-left 4px solid #E74C3C
+  Advertencia: bg #FEF9E7  border-left 4px solid #F39C12
+  Info:        bg #EBF5FB  border-left 4px solid #3498DB
+
+Tabla estándar:
+  header bg #F4F9FC | border 1px solid #BDC3C7 | border-radius 8px
+  row height 56px | row hover bg #E9F5F8
+  row border-bottom 1px solid #F4F9FC
+  paginación: 10 filas por página (Ley de Miller)
+
+Cards KPI (dashboard):
+  bg #FFFFFF | border-left 4px solid #1A6B8A
+  border-radius 8px | padding 24px
+  box-shadow 0 2px 8px rgba(0,0,0,0.08)
+  número principal: Inter 700 36px #2C3E50
+  label: Inter 500 14px #7F8C8D
+
+Avatar de iniciales:
+  width/height 40–64px (según contexto) | border-radius 50%
+  bg #1A6B8A | texto Inter 700 | color #FFFFFF
+
+Card alerta inventario:
+  bg #FEF9E7 | border-left 4px solid #F39C12
+  border-radius 8px | padding 16px 20px
+  (señaliza alertas de stock y vencimiento)
+
+Card INVIMA / control especial:
+  bg #FDEDEC | border-left 4px solid #E74C3C
+  border-radius 8px | padding 12px 16px
+  (señaliza que el producto requiere fórmula médica)
+
+Sidebar (panel interno):
+  width 240px | bg #1A3A4A | padding 24px 16px
+  ítem activo: bg #2A9D8F border-radius 8px texto #FFFFFF
+  ítem hover: bg #1A6B8A
+  texto: Inter 500 14px #ECF0F1
+  separador: 1px solid rgba(255,255,255,0.1)
+  secciones: Principal / Comercial / Inventario / Análisis / Sistema
+
+Topbar:
+  height 64px | bg #FFFFFF
+  border-bottom 1px solid #BDC3C7
+  box-shadow 0 1px 4px rgba(0,0,0,0.06)
+
+Navbar tienda (cliente externo):
+  bg #1A3A4A | logo FarmaPlus blanco
+  búsqueda central | ícono carrito con contador flotante
+  color secundario para CTA de checkout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LEYES UX APLICADAS — RESPETAR EN EL DISEÑO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Ley de Hick: máximo 5 ítems por sección del sidebar, formularios
+  sin campos innecesarios visibles, checkout en pasos progresivos
+- Ley de Fitts: botones de acción principal grandes (mín 48px alto)
+  en posición predecible (esquina superior derecha o pie de formulario)
+- Ley de Jakob: sidebar izquierdo, tabla con acciones a la derecha,
+  formularios con flujo top-down, carrito de compras a la derecha
+- Gestalt (proximidad): campos agrupados por secciones con separadores
+  visuales; productos agrupados por categoría en la tienda
+- Ley de Miller: máximo 10 filas por tabla con paginación; máximo
+  12 productos por página en catálogo
+- Visibilidad del estado: badges de estado siempre visibles, toasts
+  para feedback de acciones, barra de progreso en checkout,
+  indicador de stock en tiempo real en POS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PANTALLAS A DISEÑAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Diseña cada pantalla en un archivo HTML independiente, con datos
+de ejemplo reales colombianos, completamente funcional visualmente.
+
+— PANTALLAS YA COMPLETADAS (no rediseñar) —
+  fp-01-login.html          Login con correo/cédula + contraseña
+  fp-02-recuperar.html      Recuperación de contraseña
+  fp-07-dashboard.html      Dashboard administrador/gerente
+  fp-clientes.html          Listado de clientes
+  fp-perfil-cliente.html    Perfil detallado de cliente
+  fp-08-productos.html      Listado de productos farmacéuticos
+  fp-ficha-producto.html    Ficha detallada de producto
+  fp-form-producto.html     Formulario nuevo/editar producto
+  fp-form-cliente.html      Formulario nuevo/editar cliente
+  fp-reportes.html          Reportes de ventas
+  fp-reportes-inventario.html  Reportes de inventario
+  fp-17-pedidos.html
+  fp-18-detalle-pedido.html
+  fp-19-pos.html
+  fp-20-comprobante.html
+
+— PANTALLAS NUEVAS A CREAR —
+
+PANTALLA FP-17 — LISTADO DE PEDIDOS EN LÍNEA --YA CREADA--
+  Layout: sidebar (Pedidos activo) + topbar + contenido
+  Breadcrumb: Inicio > Comercial > Pedidos
+  Estadísticas rápidas: total pedidos hoy, pendientes de preparar,
+    en camino, entregados hoy
+  Barra de búsqueda por número de pedido o cliente + filtro de estado
+  Botón "Asignar repartidor" en acciones de fila
+  Tabla: Nº Pedido (JetBrains Mono), Cliente, Fecha/Hora,
+    Estado (badge con color), Total, Canal, Repartidor, Acciones
+  Estados con badges diferenciados: pendiente_pago / confirmado /
+    preparando / en_camino / entregado / devuelto_fallido
+  Mínimo 8 filas con datos colombianos reales
+  Paginación al pie
+
+PANTALLA FP-18 — DETALLE DE PEDIDO --YA CREADA--
+  Breadcrumb: Inicio > Comercial > Pedidos > FP-2026-0341
+  Layout de dos columnas:
+    Izquierda (60%): card resumen del pedido con número (JetBrains Mono),
+      fecha, canal (presencial/en línea), estado actual destacado;
+      tabla de productos con imagen placeholder, nombre, cantidad,
+      precio unitario, subtotal; totales: subtotal + costo envío + total
+    Derecha (40%): card cliente con avatar iniciales, nombre, teléfono,
+      dirección de entrega con mapa estático placeholder;
+      card repartidor asignado con nombre, teléfono, estado actual;
+      card timeline de estados con íconos y timestamps (cuándo pasó
+      a cada estado); botones de acción según estado actual:
+      "Marcar como preparando", "Asignar repartidor", etc.
+  Datos reales de ejemplo para el pedido FP-2026-0341
+
+PANTALLA FP-19 — PUNTO DE VENTA PRESENCIAL (POS) --YA CREADA--
+  Layout especial (sin sidebar fijo) — pantalla completa optimizada
+  para uso en mostrador, flujo rápido:
+    Panel izquierdo (55%): buscador de productos grande con autocompletado
+      visual; grid/lista de productos encontrados con stock visible;
+      tabla del carrito activo: producto, cantidad (± botones),
+      precio unitario, subtotal por ítem; botón eliminar por fila
+    Panel derecho (45%): card resumen con subtotal, descuento (campo
+      editable), total; selector de método de pago (efectivo /
+      tarjeta débito / tarjeta crédito / transferencia); campo
+      "Número de fórmula médica" que aparece SOLO si hay un producto
+      de control especial en el carrito (mostrar siempre en el mockup);
+      botón grande "Confirmar venta" (verde, full-width);
+      botón secundario "Cancelar venta"
+  Topbar simplificada: logo FarmaPlus + nombre del vendedor + botón
+    para volver al panel principal
+  Datos: mostrar 3 productos en carrito incluyendo uno de control especial
+  Badge rojo "CONTROL ESPECIAL" visible en el producto que lo requiere
+
+PANTALLA FP-20 — COMPROBANTE DE VENTA --YA CREADA--
+  Layout centrado, sin sidebar — diseño de documento imprimible:
+    Header: logo FarmaPlus + nombre del sistema + datos de la droguería
+    Número de comprobante destacado (JetBrains Mono, grande)
+    Fecha, hora y nombre del vendedor
+    Tabla de productos: nombre, cantidad, precio unitario, subtotal
+    Totales: subtotal + descuento (si aplica) + total pagado
+    Método de pago
+    Pie: mensaje de agradecimiento + datos de contacto de la droguería
+  Botones fuera del área imprimible: "Imprimir" + "Enviar por correo"
+    + "Nueva venta"
+  Datos del comprobante FP-2026-0341
+
+PANTALLA FP-21 — REGISTRO DE LOTE (ENTRADA DE MERCANCÍA)
+  Layout: sidebar (Lotes activo) + topbar + contenido
+  Breadcrumb: Inicio > Inventario > Lotes > Registrar entrada
+  Formulario en dos columnas agrupado por secciones:
+    Sección 1 — Producto: selector/buscador de producto existente
+      con preview (nombre, INVIMA, stock actual) al seleccionar
+    Sección 2 — Datos del lote: número de lote (JetBrains Mono),
+      cantidad recibida, fecha de vencimiento (con advertencia
+      si es < 90 días), fecha de ingreso (auto = hoy), proveedor
+      (selector del catálogo), precio de compra de este lote
+    Sección 3 — Documento soporte: campo para número de factura
+      o remisión del proveedor, campo de observaciones
+  Alerta visual si la fecha de vencimiento < 30 días desde hoy
+  Botón "Registrar lote" (primario) + "Cancelar" (secundario)
+  Datos de ejemplo pre-llenados: Amoxicilina Mk 500mg,
+    lote TQ-2026-089, 120 unidades, vence 2026-09-15
+
+PANTALLA FP-22 — PANEL DE ALERTAS DE INVENTARIO
+  Layout: sidebar (Alertas activo) + topbar + contenido
+  Breadcrumb: Inicio > Inventario > Alertas
+  Contador resumen arriba: total alertas activas, de las cuales
+    X son stock mínimo (ámbar) y Y son vencimiento próximo (naranja/rojo)
+  Dos secciones diferenciadas con headers visuales:
+
+    SECCIÓN A — Stock mínimo:
+      Lista de cards por producto: nombre, laboratorio, lote actual,
+      stock actual vs stock mínimo configurado, barra de progreso
+      de criticidad, botón "Registrar lote" directo
+      Ordenado de más crítico (menor %) a menos crítico
+
+    SECCIÓN B — Próximos a vencer (< 30 días):
+      Lista de cards: nombre del producto, número de lote
+      (JetBrains Mono), unidades restantes en ese lote, fecha de
+      vencimiento, días restantes destacados (rojo si < 15, ámbar
+      si 15–30), botón "Ver producto"
+      Ordenado de vencimiento más próximo a más lejano
+
+  Mínimo 4 alertas en cada sección con datos colombianos reales
+  Botón "Marcar como resuelta" en cada card
+
+PANTALLA FP-23 — CATÁLOGO TIENDA (VISTA CLIENTE EXTERNO)
+  Layout completamente diferente: navbar superior FarmaPlus
+    (sin sidebar) con búsqueda central y carrito flotante
+  Barra de categorías horizontales filtrable debajo del navbar
+  Grid de productos (3 columnas desktop, 2 tablet, 1 mobile):
+    Card producto: imagen placeholder con ícono Pill, nombre
+    comercial, principio activo en gris, precio en verde destacado,
+    badge "Venta libre" o (si control especial) NO aparece en catálogo
+    botón "Agregar al carrito" (primario) o "Sin stock" (deshabilitado)
+  Panel lateral derecho (desktop): carrito mini con productos
+    agregados, subtotal, botón "Ir al checkout"
+  Productos de control especial NO deben aparecer en este catálogo
+  Datos: mínimo 9 productos de venta libre con datos reales
+
+PANTALLA FP-24 — CARRITO Y CHECKOUT
+  Layout: navbar FarmaPlus + contenido en pasos
+  Stepper de 3 pasos visible arriba:
+    [1. Carrito] → [2. Dirección y envío] → [3. Pago]
+
+  PASO 1 — Carrito:
+    Lista de productos: imagen placeholder, nombre, cantidad
+    editable (+ −), precio unitario, subtotal; botón eliminar
+    Resumen lateral: subtotal + "¿Tienes un código de descuento?"
+    + botón "Continuar"
+
+  PASO 2 — Dirección y envío:
+    Selector de dirección guardada o formulario nueva dirección
+    Cálculo automático de costo de domicilio mostrado
+    con desglose: tarifa base + recargo por distancia
+    Resumen actualizado con el costo de envío incluido
+
+  PASO 3 — Pago:
+    Selector de método: PSE / Nequi / Tarjeta (3 opciones con logos)
+    Resumen final completo (productos + envío + total)
+    Botón "Confirmar y pagar" (verde, full-width)
+    Nota legal pequeña: "Serás redirigido a MercadoPago"
+
+  Mostrar el mockup en el Paso 2 activo con datos pre-llenados
+
+PANTALLA FP-25 — PANEL DEL REPARTIDOR
+  Layout: sidebar simplificado (solo secciones de repartidor) + topbar
+  El repartidor SOLO ve sus pedidos asignados — nunca los de otros
+  Breadcrumb: Inicio > Mis entregas
+  Estadísticas del día: pendientes, en camino, entregados, fallidos
+  Lista de tarjetas de pedido (no tabla) — cada card muestra:
+    Número de pedido (JetBrains Mono), nombre y teléfono del cliente,
+    dirección completa con referencia, lista de productos del pedido,
+    total del pedido, estado actual (badge grande), hora de asignación
+  Botones de acción según estado:
+    Si "confirmado/preparando" → botón "Salir a entregar" (cambia a en_camino)
+    Si "en_camino" → botón "Marcar como entregado" + "Reportar problema"
+    Si se reporta problema → modal con selector de razón + observación
+  Mínimo 3 pedidos en distintos estados
+  Datos reales de Neiva, Huila
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REQUISITOS TÉCNICOS DEL CÓDIGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- HTML5 semántico (nav, main, section, article, header, aside)
+- CSS con variables (custom properties) definidas en :root
+- Importar Inter y JetBrains Mono desde Google Fonts
+- Importar Lucide Icons desde CDN: https://unpkg.com/lucide@latest
+- Responsivo con media queries en 768px y 1024px
+- Sin frameworks externos — solo HTML, CSS y JS vanilla mínimo
+- Cada pantalla en un archivo HTML independiente
+- Comentarios CSS explicando cada sección principal
+- El sidebar debe tener el ítem correspondiente resaltado
+  como activo en cada pantalla, siguiendo esta estructura:
+    Principal: Dashboard
+    Comercial: Clientes / Pedidos / Ventas POS / Domicilios
+    Inventario: Productos / Lotes / Alertas / Proveedores
+    Análisis: Reportes
+    Sistema: Usuarios / Configuración
+- Los números de comprobante, INVIMA, lotes y referencias
+  deben usar font-family JetBrains Mono
+- Datos de ejemplo deben ser colombianos reales:
+  nombres, ciudades de Huila (Neiva, Pitalito, Garzón),
+  productos farmacéuticos reales (Amoxicilina Mk, Loratadina,
+  Metformina Genfar, Omeprazol, Cetirizina Bayer, etc.),
+  precios en pesos colombianos (COP)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENTREGABLE ESPERADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Un archivo HTML por pantalla, completamente funcional visualmente,
+con datos de ejemplo reales colombianos, fiel al sistema de diseño
+descrito, responsivo y listo para usar como referencia de mockup
+de alta fidelidad y para comenzar el desarrollo frontend real.
+
+Los nombres de archivo deben seguir la convención:
+  fp-17-pedidos.html
+  fp-18-detalle-pedido.html
+  fp-19-pos.html
+  fp-20-comprobante.html
+  fp-21-registro-lote.html
+  fp-22-alertas.html
+  fp-23-tienda.html
+  fp-24-checkout.html
+  fp-25-repartidor.html
+
+Empieza por fp-21-registro-lote.html y espera mi confirmación
+antes de continuar con la siguiente pantalla.

@@ -1,0 +1,8 @@
+/vendor/
+/node_modules/
+.env
+*.log
+/public/assets/css/app.min.css
+.DS_Store
+Thumbs.db
+PROMPT_ANTIGRAVITY.md
