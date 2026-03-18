@@ -1,5 +1,3 @@
-# FarmaPlus
-
 # FarmaPlus CRM
 
 > Sistema de gestión integral para droguería pequeña — Colombia  
