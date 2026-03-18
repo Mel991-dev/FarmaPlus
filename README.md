@@ -912,6 +912,4 @@ class LoteModel
 ```
 
 ---
-
-*README generado como parte del proceso de modelado del sistema FarmaPlus CRM.*  
-*Proyecto académico — Análisis y Desarrollo de Software — SENA · Neiva, Huila · 2026*
+*Proyecto académico — Análisis y Desarrollo de Software — SENA · 2026*
