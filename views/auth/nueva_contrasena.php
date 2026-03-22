@@ -21,77 +21,7 @@ $error        = $error        ?? null;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    :root { --color-primary:#1A6B8A; --color-primary-light:#4A9BB5; --color-secondary:#2A9D8F; --color-sidebar-bg:#1A3A4A; --color-success:#27AE60; --color-error:#E74C3C; --color-text-primary:#2C3E50; --color-text-secondary:#7F8C8D; --color-border:#BDC3C7; --color-bg-card:#E9F5F8; --radius-md:8px; --radius-lg:12px; --radius-full:9999px; --font-main:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace; --shadow-focus:0 0 0 3px rgba(26,107,138,0.15); }
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html, body { height:100%; font-family:var(--font-main); background:var(--color-sidebar-bg); color:var(--color-text-primary); }
-    .auth-wrapper { display:flex; min-height:100vh; }
-    .brand-panel { flex:1; background:var(--color-sidebar-bg); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:48px 40px; position:relative; overflow:hidden; }
-    .brand-panel::before { content:''; position:absolute; width:400px; height:400px; border-radius:50%; border:1.5px solid rgba(42,157,143,0.18); top:-80px; right:-80px; }
-    .brand-content { position:relative; z-index:1; text-align:center; max-width:360px; }
-    .logo-wrap { display:inline-flex; align-items:center; gap:12px; margin-bottom:40px; }
-    .logo-icon { width:52px; height:52px; background:var(--color-secondary); border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(42,157,143,0.35); }
-    .logo-icon svg { color:#fff; width:28px; height:28px; }
-    .logo-text { display:flex; flex-direction:column; align-items:flex-start; }
-    .logo-name { font-size:26px; font-weight:700; color:#fff; letter-spacing:-0.5px; }
-    .logo-name span { color:var(--color-secondary); }
-    .logo-sub { font-size:11px; font-weight:500; color:rgba(236,240,241,0.55); text-transform:uppercase; letter-spacing:1.5px; margin-top:3px; }
-    .brand-tagline { font-size:18px; font-weight:600; color:#ECF0F1; line-height:1.4; margin-bottom:12px; }
-    .brand-desc { font-size:14px; color:rgba(236,240,241,0.6); line-height:1.6; }
-    .brand-divider { width:48px; height:2px; background:var(--color-secondary); border-radius:var(--radius-full); margin:32px auto; opacity:0.5; }
-    .feature-list { display:flex; flex-direction:column; gap:12px; text-align:left; }
-    .feature-item { display:flex; align-items:center; gap:12px; }
-    .feature-icon { width:32px; height:32px; border-radius:var(--radius-md); background:rgba(42,157,143,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .feature-icon svg { color:var(--color-secondary); width:16px; height:16px; }
-    .feature-item span { font-size:14px; color:rgba(236,240,241,0.75); font-weight:500; }
-    .form-panel { flex:1; background:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:48px 40px; }
-    .form-container { width:100%; max-width:440px; }
-    .back-link { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:var(--color-text-secondary); text-decoration:none; margin-bottom:40px; transition:color 0.2s; }
-    .back-link:hover { color:var(--color-primary); }
-    .back-link svg { width:15px; height:15px; }
-    .lock-icon-wrap { width:72px; height:72px; background:var(--color-bg-card); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 28px; border:2px solid rgba(26,107,138,0.12); }
-    .lock-icon-wrap svg { width:32px; height:32px; color:var(--color-primary); }
-    .form-header { text-align:center; margin-bottom:36px; }
-    .form-title { font-size:26px; font-weight:700; color:var(--color-text-primary); margin-bottom:10px; }
-    .form-subtitle { font-size:14px; color:var(--color-text-secondary); line-height:1.65; }
-    .form-group { margin-bottom:20px; }
-    .form-label { display:block; font-size:14px; font-weight:500; color:var(--color-text-primary); margin-bottom:8px; }
-    .input-wrap { position:relative; }
-    .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--color-text-secondary); width:18px; height:18px; pointer-events:none; }
-    .input-wrap:focus-within .input-icon { color:var(--color-primary); }
-    .form-input { width:100%; height:48px; padding:0 44px 0 44px; border:1.5px solid var(--color-border); border-radius:var(--radius-md); font-family:var(--font-main); font-size:15px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
-    .form-input::placeholder { color:#B0B8C1; }
-    .form-input:focus { border-color:var(--color-primary); box-shadow:var(--shadow-focus); }
-    .form-input.input-error { border-color:var(--color-error); }
-    .toggle-password { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--color-text-secondary); display:flex; align-items:center; padding:4px; border-radius:4px; }
-    .toggle-password:hover { color:var(--color-primary); }
-    .toggle-password svg { width:18px; height:18px; }
-    .field-error { display:none; align-items:center; gap:4px; margin-top:6px; font-size:12px; color:var(--color-error); }
-    .field-error.visible { display:flex; }
-    .field-error svg { width:13px; height:13px; }
-    .alert-error { background:#FDEDEC; border:1px solid rgba(231,76,60,0.25); border-left:4px solid var(--color-error); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:20px; display:flex; gap:10px; align-items:center; }
-    .alert-error svg { color:var(--color-error); flex-shrink:0; width:16px; height:16px; }
-    .alert-error-text { font-size:14px; color:#922B21; }
-    .alert-expired { background:#FEF9E7; border:1px solid rgba(243,156,18,0.3); border-left:4px solid #F39C12; border-radius:var(--radius-md); padding:16px; text-align:center; }
-    .alert-expired svg { color:#F39C12; width:32px; height:32px; margin-bottom:12px; }
-    .alert-expired h2 { font-size:18px; font-weight:700; color:var(--color-text-primary); margin-bottom:8px; }
-    .alert-expired p { font-size:14px; color:var(--color-text-secondary); margin-bottom:16px; }
-    .btn-primary { width:100%; height:48px; background:var(--color-primary); color:#fff; border:none; border-radius:var(--radius-md); font-family:var(--font-main); font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; transition:background 0.2s; }
-    .btn-primary:hover { background:var(--color-primary-light); }
-    .btn-primary:disabled { opacity:0.6; cursor:not-allowed; }
-    .btn-primary svg { width:18px; height:18px; }
-    .btn-outline { width:100%; height:44px; border:2px solid var(--color-primary); border-radius:var(--radius-md); font-family:var(--font-main); font-size:14px; font-weight:600; color:var(--color-primary); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
-    .btn-outline:hover { background:var(--color-bg-card); }
-    .btn-outline svg { width:16px; height:16px; }
-    /* Indicador de fortaleza */
-    .strength-bar-wrap { height:4px; background:#F0F3F4; border-radius:9999px; overflow:hidden; margin-top:8px; }
-    .strength-bar { height:100%; border-radius:9999px; transition:width 0.3s, background 0.3s; width:0%; }
-    .strength-text { font-size:11px; margin-top:4px; font-weight:600; }
-    .form-footer { margin-top:24px; text-align:center; padding-top:20px; border-top:1px solid #F0F3F4; }
-    .form-footer p { font-size:13px; color:var(--color-text-secondary); }
-    .version-tag { margin-top:10px; font-size:11px; font-family:var(--font-mono); color:#C8D0D5; }
-    @media (max-width:1023px) { .brand-panel { display:none; } .form-panel { background:#F4F9FC; padding:32px 24px; } .form-container { background:#fff; border-radius:var(--radius-lg); padding:36px 32px; box-shadow:0 2px 8px rgba(0,0,0,0.08); } }
-  </style>
+  <link rel="stylesheet" href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/assets/css/app.min.css?v=<?= time() ?>" />
 </head>
 <body>
 
