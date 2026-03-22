@@ -109,8 +109,8 @@ CREATE TABLE IF NOT EXISTS direcciones_entrega (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS productos (
     producto_id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    categoria_id       INT UNSIGNED NOT NULL,
-    proveedor_id       INT UNSIGNED NOT NULL,
+    categoria_id       INT UNSIGNED NULL,
+    proveedor_id       INT UNSIGNED NULL,
     nombre             VARCHAR(200) NOT NULL,
     principio_activo   VARCHAR(200) NOT NULL DEFAULT '',
     concentracion      VARCHAR(80)  NOT NULL DEFAULT '',
@@ -126,10 +126,10 @@ CREATE TABLE IF NOT EXISTS productos (
     UNIQUE KEY uq_invima (codigo_invima),
     CONSTRAINT fk_productos_categoria FOREIGN KEY (categoria_id)
         REFERENCES categorias_producto (categoria_id)
-        ON UPDATE RESTRICT ON DELETE RESTRICT,
+        ON UPDATE RESTRICT ON DELETE SET NULL,
     CONSTRAINT fk_productos_proveedor FOREIGN KEY (proveedor_id)
         REFERENCES proveedores (proveedor_id)
-        ON UPDATE RESTRICT ON DELETE RESTRICT
+        ON UPDATE RESTRICT ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
