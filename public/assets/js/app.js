@@ -105,3 +105,33 @@ document.addEventListener('DOMContentLoaded', () => {
         Toast.show(flashMsg.dataset.flashMsg, tipo);
     }
 });
+
+// ============================================================
+// Sidebar Toggle (Mobile)
+// ============================================================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('visible');
+    }
+}
+
+function openSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.add('open');
+        overlay.classList.add('visible');
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    }
+}
