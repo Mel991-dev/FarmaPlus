@@ -9,12 +9,32 @@ class AlertaModel
 
     public function listarActivas(): array
     {
-        $sql  = "SELECT a.*, p.nombre AS producto_nombre, l.numero_lote, l.fecha_vencimiento
+        $sql  = "SELECT a.*, 
+                        p.nombre AS producto_nombre,
+                        p.stock_minimo,
+                        pr.nombre AS laboratorio,
+                        c.nombre AS categoria_nombre,
+                        l.numero_lote,
+                        l.fecha_vencimiento,
+                        l.cantidad_actual,
+                        COALESCE(SUM(l2.cantidad_actual), 0) AS stock_actual
                  FROM alertas a
                  INNER JOIN productos p ON a.producto_id = p.producto_id
+                 LEFT JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id
+                 LEFT JOIN categorias_producto c ON p.categoria_id = c.categoria_id
                  LEFT JOIN lotes l ON a.lote_id = l.lote_id
+                 LEFT JOIN lotes l2 ON p.producto_id = l2.producto_id AND l2.activo = 1 AND l2.cantidad_actual > 0
                  WHERE a.estado = 'activa'
-                 ORDER BY a.tipo ASC, a.created_at DESC";
+                 GROUP BY a.alerta_id
+                 ORDER BY 
+                    CASE a.tipo 
+                        WHEN 'stock_minimo' THEN 1 
+                        WHEN 'vencimiento' THEN 2 
+                    END,
+                    CASE a.tipo
+                        WHEN 'stock_minimo' THEN COALESCE(SUM(l2.cantidad_actual), 0) / NULLIF(p.stock_minimo, 0)
+                        WHEN 'vencimiento' THEN DATEDIFF(l.fecha_vencimiento, CURDATE())
+                    END ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

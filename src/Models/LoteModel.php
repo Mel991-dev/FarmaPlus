@@ -33,15 +33,22 @@ class LoteModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Registrar nueva entrada de lote (RF-4.2) */
     public function registrar(array $datos): string
     {
+        // Se usan parámetros posicionales evitar PDOException (HY093) al repetir :cantidad_inicial
         $sql = "INSERT INTO lotes (producto_id, proveedor_id, numero_lote, cantidad_inicial,
                 cantidad_actual, fecha_vencimiento, fecha_entrada, registrado_por)
-                VALUES (:producto_id, :proveedor_id, :numero_lote, :cantidad_inicial,
-                :cantidad_inicial, :fecha_vencimiento, NOW(), :registrado_por)";
+                VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($datos);
+        $stmt->execute([
+            $datos[':producto_id'],
+            $datos[':proveedor_id'],
+            $datos[':numero_lote'],
+            $datos[':cantidad_inicial'],
+            $datos[':cantidad_inicial'], // Se pasa duplicado como valor, no como named param
+            $datos[':fecha_vencimiento'],
+            $datos[':registrado_por'],
+        ]);
         return $this->db->lastInsertId();
     }
 

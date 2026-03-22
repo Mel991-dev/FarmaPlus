@@ -83,4 +83,44 @@ class AlertaService
             }
         }
     }
+
+    /**
+     * Alias retrocompatible — verifica alertas de vencimiento para un lote concreto.
+     * Llamar tras registrar un lote nuevo.
+     */
+    public function verificarVencimiento(int $loteId): void
+    {
+        // Buscar el lote y delegar en verificarProducto
+        try {
+            $sql  = "SELECT producto_id FROM lotes WHERE lote_id = :id LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':id' => $loteId]);
+            $fila = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($fila) {
+                $this->verificarProducto((int)$fila['producto_id']);
+            }
+        } catch (\Throwable) {
+            // Silenciar errores no críticos
+        }
+    }
+
+    /**
+     * Verificar todos los productos activos y generar alertas pendientes.
+     * Se llama al abrir la vista de alertas para que siempre estén al día.
+     */
+    public function verificarTodos(): void
+    {
+        try {
+            $sql  = "SELECT producto_id FROM productos WHERE activo = 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $ids  = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+            foreach ($ids as $id) {
+                $this->verificarProducto((int)$id);
+            }
+        } catch (\Throwable) {
+            // Silenciar errores no críticos para no romper la carga de la vista
+        }
+    }
 }

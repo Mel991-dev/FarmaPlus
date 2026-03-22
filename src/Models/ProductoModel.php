@@ -89,12 +89,26 @@ class ProductoModel
 
     public function crear(array $datos): string
     {
-        $sql  = "INSERT INTO productos (nombre, principio_activo, concentracion, forma_farmaceutica,
-                 codigo_invima, categoria_id, proveedor_id, control_especial, precio_compra, precio_venta, stock_minimo)
-                 VALUES (:nombre, :principio_activo, :concentracion, :forma_farmaceutica,
-                 :codigo_invima, :categoria_id, :proveedor_id, :control_especial, :precio_compra, :precio_venta, :stock_minimo)";
+        // Usar parámetros posicionales para evitar problemas con named params duplicados (HY093)
+        $sql  = "INSERT INTO productos
+                    (nombre, principio_activo, concentracion, forma_farmaceutica,
+                     codigo_invima, categoria_id, proveedor_id, control_especial,
+                     precio_compra, precio_venta, stock_minimo)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($datos);
+        $stmt->execute([
+            $datos[':nombre'],
+            $datos[':principio_activo'],
+            $datos[':concentracion'],
+            $datos[':forma_farmaceutica'],
+            $datos[':codigo_invima'],
+            $datos[':categoria_id'],
+            $datos[':proveedor_id'],
+            $datos[':control_especial'],
+            $datos[':precio_compra'],
+            $datos[':precio_venta'],
+            $datos[':stock_minimo'],
+        ]);
         return $this->db->lastInsertId();
     }
 
