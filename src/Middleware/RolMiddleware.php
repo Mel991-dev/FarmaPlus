@@ -26,8 +26,9 @@ class RolMiddleware
 
         if (!in_array($rolActual, $this->rolesPermitidos, true)) {
             $response = new SlimResponse();
+            $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
             return $response
-                ->withHeader('Location', '/dashboard')
+                ->withHeader('Location', $basePath . '/dashboard')
                 ->withStatus(302);
         }
 
