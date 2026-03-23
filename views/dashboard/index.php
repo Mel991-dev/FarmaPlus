@@ -336,7 +336,7 @@ function fmtCOP(float $v): string {
         <div class="qa-icon blue"><i data-lucide="scan-line"></i></div>
         <div><div class="qa-label">Nueva venta</div><div class="qa-sub">Punto de venta POS</div></div>
       </a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes/crear" class="quick-action-btn">
+      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes/registrar" class="quick-action-btn">
         <div class="qa-icon purple"><i data-lucide="layers"></i></div>
         <div><div class="qa-label">Registrar lote</div><div class="qa-sub">Entrada de mercancía</div></div>
       </a>
