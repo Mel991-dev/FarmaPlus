@@ -1,7 +1,7 @@
 # FarmaPlus CRM
 
 > Sistema de gestión integral para droguería pequeña — Colombia  
-> Versión: 1.0.0 (MVP) · Estado: En modelado / Desarrollo inicial  
+> Versión: 1.0.0 (MVP) · Estado actual: En desarrollo  
 > Programa: Análisis y Desarrollo de Software — SENA  
 > Fecha estimada de entrega MVP: Abril 2026
 
@@ -372,7 +372,7 @@ Se listan las 29 historias de usuario organizadas por actor. Cada una incluye cr
 | **Correos** | PHPMailer | 6.x | Librería estándar de la industria para correo en PHP |
 | **Pagos** | MercadoPago PHP SDK | 3.x | Mayor penetración en Colombia. Soporta PSE, Nequi, tarjetas. SDK oficial |
 | **Gestión de deps.** | Composer | 2.x | Gestor de dependencias estándar de PHP |
-| **Servidor local** | Laragon | Latest | Entorno de desarrollo Windows con PHP, MySQL y Apache preconfigurados |
+| **Servidor local** | WAMPSERVER64 | 3.x | Entorno de desarrollo Windows con PHP, MySQL y Apache preconfigurados |
 
 > **Decisión clave:** Se usa PDO con consultas preparadas en lugar de un ORM (Eloquent/Doctrine). Razón: para un aprendiz SENA, escribir SQL real enseña la base de datos directamente, el código es más legible y la depuración más sencilla.
 
@@ -746,7 +746,7 @@ PHP 8.2+
 MySQL 8.0
 Composer 2.x
 Node.js 18+ (solo para Tailwind CLI)
-Laragon (recomendado para Windows) o XAMPP
+WampServer64 (recomendado para Windows) o XAMPP
 ```
 
 ### Instalación paso a paso
@@ -755,6 +755,8 @@ Laragon (recomendado para Windows) o XAMPP
 # 1. Clonar el repositorio
 git clone https://github.com/tu-usuario/farmaplus-crm.git
 cd farmaplus-crm
+
+directorio recomendado: C:/wamp64/www/...
 
 # 2. Instalar dependencias PHP
 composer install
@@ -775,7 +777,7 @@ npx tailwindcss -i ./public/assets/css/app.css \
                 -o ./public/assets/css/app.min.css \
                 --watch
 
-# 7. Configurar DocumentRoot en Laragon/Apache
+# 7. Configurar DocumentRoot en Wampserver64/Apache
 # Apuntar al directorio: farmaplus-crm/public/
 ```
 
@@ -910,4 +912,4 @@ class LoteModel
 ```
 
 ---
-*Proyecto académico — Análisis y Desarrollo de Software — SENA · 2026*
+*Proyecto académico — Desarrollado por aprendices del sena!!! >— SENA · 2026*
