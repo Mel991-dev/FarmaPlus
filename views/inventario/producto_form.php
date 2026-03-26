@@ -485,20 +485,18 @@ function calcularMargen() {
   const compra = parseFloat(campos.precio_compra?.value) || 0;
   const venta = parseFloat(campos.precio_venta?.value) || 0;
   
+  const margenValue = document.getElementById('margenValue');
+  const margenBadge = document.getElementById('margenBadge');
+
   if (compra > 0 && venta > 0) {
     const margen = ((venta - compra) / compra) * 100;
-    const margenDisplay = document.getElementById('margenDisplay');
-    const margenValue = document.getElementById('margenValue');
-    const margenBadge = document.getElementById('margenBadge');
+    margenValue.textContent = (margen > 0 ? '+' : '') + margen.toFixed(1) + '%';
     
-    margenDisplay.style.display = 'flex';
-    margenValue.textContent = margen.toFixed(1) + '%';
-    
-    if (margen > 0) {
+    if (margen > 0.01) {
       margenValue.className = 'margen-value positive';
       margenBadge.className = 'margen-badge positive';
       margenBadge.textContent = 'Rentable';
-    } else if (margen < 0) {
+    } else if (margen < -0.01) {
       margenValue.className = 'margen-value negative';
       margenBadge.className = 'margen-badge negative';
       margenBadge.textContent = 'Pérdida';
@@ -507,6 +505,11 @@ function calcularMargen() {
       margenBadge.className = 'margen-badge zero';
       margenBadge.textContent = 'Sin margen';
     }
+  } else {
+    margenValue.textContent = '-';
+    margenValue.className = 'margen-value zero';
+    margenBadge.className = 'margen-badge zero';
+    margenBadge.textContent = 'Sin datos';
   }
 }
 

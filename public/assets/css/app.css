@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -635,7 +635,7 @@ tbody td:last-child { padding-right: 20px; }
 .form-grid-invima { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
 .price-input-wrap { position: relative; }
 .price-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 600; color: var(--color-text-secondary, #7F8C8D); pointer-events: none; }
-.price-input-wrap .form-input { padding-left: 26px; }
+.price-input-wrap .form-input { padding-left: 50px; }
 .toggle-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--color-bg-main, #F4F9FC); border: 1px solid var(--color-border, #BDC3C7); border-radius: 8px; }
 .toggle-field-info { flex: 1; }
 .toggle-field-label { font-size: 13px; font-weight: 600; color: var(--color-text-primary, #2C3E50); }
@@ -657,8 +657,15 @@ tbody td:last-child { padding-right: 20px; }
 .side-card-body { padding: 16px; }
 .margen-display { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .margen-label { font-size: 12px; color: var(--color-text-secondary, #7F8C8D); }
-.margen-value { font-size: 22px; font-weight: 700; font-family: var(--font-mono, monospace); color: var(--color-success, #27AE60); }
-.margen-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; background: #EAFAF1; color: #1D6E3A; }
+.margen-value { font-size: 22px; font-weight: 700; font-family: var(--font-mono, monospace); color: var(--color-text-secondary, #7F8C8D); }
+.margen-value.positive { color: var(--color-success, #27AE60); }
+.margen-value.negative { color: var(--color-error, #E74C3C); }
+.margen-value.zero     { color: var(--color-text-secondary, #7F8C8D); }
+
+.margen-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; background: var(--color-bg-card, #E9F5F8); color: var(--color-text-secondary, #7F8C8D); }
+.margen-badge.positive { background: #EAFAF1; color: #1D6E3A; }
+.margen-badge.negative { background: #FDEDEC; color: #922B21; }
+.margen-badge.zero     { background: var(--color-bg-card, #E9F5F8); color: var(--color-text-secondary, #7F8C8D); }
 .progress-item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .progress-label { font-size: 12px; color: var(--color-text-secondary, #7F8C8D); display: flex; justify-content: space-between; }
 .progress-dot { height: 6px; background: #F0F3F4; border-radius: 9999px; overflow: hidden; }
