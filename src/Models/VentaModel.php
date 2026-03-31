@@ -11,6 +11,10 @@ class VentaModel
 {
     public function __construct(private PDO $db) {}
 
+    public function iniciarTransaccion(): void { $this->db->beginTransaction(); }
+    public function confirmarTransaccion(): void { $this->db->commit(); }
+    public function revertirTransaccion(): void { $this->db->rollBack(); }
+
     public function crear(array $datos): string
     {
         $sql  = "INSERT INTO ventas_presenciales (numero_comprobante, vendedor_id, subtotal, total, metodo_pago, formula_medica)
