@@ -1,11 +1,14 @@
-<aside class="sidebar bg-fp-primary-dark fixed top-0 left-0 h-screen flex flex-col z-50 transition-transform duration-300 w-[240px]" id="sidebar" role="navigation" aria-label="Navegación principal">
+<aside class="sidebar bg-fp-primary-dark fixed top-0 left-0 h-screen flex flex-col z-50 transition-transform duration-300 w-[240px] -translate-x-full lg:translate-x-0" id="sidebarCliente" role="navigation" aria-label="Navegación principal">
   
   <!-- Logo -->
-  <div class="flex items-center gap-3 px-4 pt-6 pb-5 border-b border-white/10 shrink-0">
-    <div class="w-9 h-9 bg-fp-secondary rounded-lg flex items-center justify-center">
-      <i data-lucide="pill" class="text-white w-5 h-5"></i>
+  <div class="flex items-center justify-between px-4 pt-6 pb-5 border-b border-white/10 shrink-0">
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-fp-secondary rounded-lg flex items-center justify-center">
+        <i data-lucide="pill" class="text-white w-5 h-5"></i>
+        </div>
+        <span class="text-[17px] font-bold text-white tracking-tight">Farma<span class="text-fp-secondary">Plus</span></span>
     </div>
-    <span class="text-[17px] font-bold text-white tracking-tight">Farma<span class="text-fp-secondary">Plus</span></span>
+    <button onclick="toggleSidebarCliente()" class="lg:hidden text-white/70 hover:text-white p-1 rounded-md transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
   </div>
 
   <!-- Menú de Navegación -->

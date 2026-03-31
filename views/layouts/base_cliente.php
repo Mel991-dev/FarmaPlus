@@ -20,15 +20,21 @@
 </head>
 <body class="bg-fp-bg-main relative w-full h-full min-h-screen text-fp-text font-sans antialiased overflow-x-hidden">
 
+<!-- Overlay Oscuro Móvil -->
+<div id="sidebarOverlayCliente" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebarCliente()"></div>
+
 <!-- SIDEBAR EXCLUSIVO PARA CLIENTES -->
 <?php include __DIR__ . '/sidebar_cliente.php'; ?>
 
 <!-- TOPBAR -->
-<header class="fixed top-0 right-0 left-[240px] h-[64px] bg-white border-b border-fp-border z-40 flex items-center justify-between px-6 shadow-sm transition-all duration-300">
+<header class="fixed top-0 right-0 left-0 lg:left-[240px] h-[64px] bg-white border-b border-fp-border z-30 flex items-center justify-between px-4 sm:px-6 shadow-sm transition-all duration-300">
     
-    <!-- Left side: Breadcrumb/Title -->
-    <div class="flex items-center gap-4">
-        <h2 class="font-bold text-fp-text text-lg tracking-tight"><?= htmlspecialchars($titulo ?? 'Mi Perfil') ?></h2>
+    <!-- Left side: Breadcrumb/Title + Hamburger -->
+    <div class="flex items-center gap-3">
+        <button onclick="toggleSidebarCliente()" class="lg:hidden p-2 -ml-2 text-fp-text hover:bg-fp-bg-main rounded-md transition-colors">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <h2 class="font-bold text-fp-text text-[15px] sm:text-lg tracking-tight"><?= htmlspecialchars($titulo ?? 'Mi Perfil') ?></h2>
     </div>
 
     <!-- Right side: User Badge -->
@@ -46,7 +52,7 @@
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
-<main class="ml-[240px] mt-[64px] p-6 lg:p-8 min-h-[calc(100vh-64px)] w-[calc(100%-240px)] transition-all duration-300">
+<main class="ml-0 lg:ml-[240px] mt-[64px] p-4 sm:p-6 lg:p-8 h-[calc(100vh-64px)] w-full lg:w-[calc(100%-240px)] overflow-y-auto transition-all duration-300">
     <?php if (!empty($contenido)) echo $contenido; ?>
 </main>
 
@@ -57,6 +63,22 @@
             lucide.createIcons();
         }
     });
+
+    // Toggle Sidebar Móvil Cliente
+    function toggleSidebarCliente() {
+        const sidebar = document.getElementById('sidebarCliente');
+        const overlay = document.getElementById('sidebarOverlayCliente');
+        
+        sidebar.classList.toggle('-translate-x-full');
+        
+        if (!sidebar.classList.contains('-translate-x-full')) {
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        } else {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
 </script>
 </body>
 </html>

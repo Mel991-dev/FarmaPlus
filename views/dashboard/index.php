@@ -1,15 +1,11 @@
 <?php
 /**
  * views/dashboard/index.php
- * Dashboard principal — fiel al mockup fp-07-dashboard.html
- * Muestra datos reales de sesión y alertas de inventario desde la BD.
- *
- * Variables inyectadas por DashboardController:
- *   $usuario      array — Datos del usuario en sesión
- *   $alertas      array — Alertas activas de inventario
- *   $ventas_hoy   array — Últimas 5 ventas del día
- *   $kpis         array — Totales: ventas_dia, pedidos_pendientes, alertas_total, clientes_total
+ * Refactorizado para usar `views/layouts/base.php` 
+ * e implementa Tailwind puro para el layout (100% Responsive)
  */
+$titulo = 'Dashboard';
+
 $usuario    = $usuario    ?? ['nombres' => 'Usuario', 'apellidos' => '', 'rol_nombre' => 'usuario'];
 $alertas    = $alertas    ?? [];
 $ventas_hoy = $ventas_hoy ?? [];
@@ -17,324 +13,247 @@ $kpis       = $kpis       ?? ['ventas_dia' => 0, 'pedidos_pendientes' => 0, 'ale
 
 $iniciales = strtoupper(mb_substr($usuario['nombres'], 0, 1) . mb_substr($usuario['apellidos'], 0, 1));
 $nombre    = htmlspecialchars($usuario['nombres']);
-$rol       = htmlspecialchars(ucfirst($usuario['rol_nombre']));
 
 function fmtCOP(float $v): string {
     return '$' . number_format($v, 0, ',', '.');
 }
+
+ob_start(); 
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | FarmaPlus CRM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/assets/css/app.min.css?v=<?= time() ?>" />
-</head>
-<body>
 
-<div class="toast-container" id="toastContainer"></div>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<div class="app-shell">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><i data-lucide="pill"></i></div>
-      <span class="sidebar-logo-text">Farma<span>Plus</span></span>
+<!-- SALUDO DINÁMICO -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+  <div class="flex items-center gap-4">
+    <div class="w-14 h-14 rounded-full bg-fp-primary flex items-center justify-center text-white text-xl font-bold shadow-sm shrink-0">
+      <?= htmlspecialchars($iniciales) ?>
     </div>
-    <nav class="sidebar-nav">
-      <span class="nav-section-label">Principal</span>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/dashboard" class="nav-item active" aria-current="page">
-        <i data-lucide="layout-dashboard"></i>Dashboard
-      </a>
-      <div class="sidebar-divider"></div>
-      <span class="nav-section-label">Comercial</span>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/ventas/pos" class="nav-item"><i data-lucide="receipt"></i>Ventas POS</a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/pedidos" class="nav-item"><i data-lucide="shopping-bag"></i>Pedidos</a>
-      <div class="sidebar-divider"></div>
-      <span class="nav-section-label">Inventario</span>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/productos" class="nav-item"><i data-lucide="pill"></i>Productos</a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes" class="nav-item"><i data-lucide="layers"></i>Lotes</a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/alertas" class="nav-item">
-        <i data-lucide="alert-triangle"></i>Alertas
-        <?php if (($kpis['alertas_total'] ?? 0) > 0): ?>
-        <span class="nav-badge" style="background:rgba(231,76,60,0.25);color:#E74C3C;"><?= $kpis['alertas_total'] ?></span>
-        <?php endif; ?>
-      </a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/proveedores" class="nav-item"><i data-lucide="building-2"></i>Proveedores</a>
-      <div class="sidebar-divider"></div>
-      <span class="nav-section-label">Análisis</span>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/gerente/reportes/ventas" class="nav-item"><i data-lucide="bar-chart-2"></i>Reportes</a>
-      <div class="sidebar-divider"></div>
-      <span class="nav-section-label">Sistema</span>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/admin/usuarios" class="nav-item"><i data-lucide="shield-check"></i>Usuarios</a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/admin/configuracion" class="nav-item"><i data-lucide="settings"></i>Configuración</a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-avatar"><?= htmlspecialchars($iniciales) ?></div>
-        <div class="sidebar-user-info">
-          <div class="sidebar-user-name"><?= $nombre ?> <?= htmlspecialchars($usuario['apellidos'] ?? '') ?></div>
-          <div class="sidebar-user-role"><?= $rol ?></div>
-        </div>
-        <form method="POST" action="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/logout">
-          <button type="submit" class="sidebar-logout" aria-label="Cerrar sesión">
-            <i data-lucide="log-out"></i>
-          </button>
-        </form>
+    <div class="flex flex-col">
+      <h1 class="text-2xl font-bold text-fp-text tracking-tight" id="greeting">Bienvenido, <?= $nombre ?></h1>
+      <p class="text-[13px] text-fp-muted mt-0.5" id="greetingDate">Cargando fecha…</p>
+    </div>
+  </div>
+  <!-- Oculto en móbiles pequeños, visible en tablet/PC -->
+  <div class="hidden sm:flex flex-col items-end">
+    <div class="text-2xl font-bold text-fp-text font-mono tracking-tight" id="greetingTime">00:00</div>
+    <div class="text-[11px] text-fp-muted font-medium uppercase tracking-wider" id="greetingDateSub">—</div>
+  </div>
+</div>
+
+<!-- ACCESOS RÁPIDOS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/ventas/pos" class="bg-white rounded-xl border border-fp-border p-4 flex items-center gap-4 hover:border-fp-primary/50 hover:shadow-md transition-all group">
+    <div class="w-12 h-12 rounded-xl bg-[#2D9CDB]/10 text-[#2D9CDB] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><i data-lucide="scan-line" class="w-6 h-6"></i></div>
+    <div class="min-w-0">
+      <div class="text-[15px] font-bold text-fp-text leading-tight group-hover:text-[#2D9CDB]">Nueva venta</div>
+      <div class="text-[11px] text-fp-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Punto de venta POS</div>
+    </div>
+  </a>
+  <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes/registrar" class="bg-white rounded-xl border border-fp-border p-4 flex items-center gap-4 hover:border-fp-primary/50 hover:shadow-md transition-all group">
+    <div class="w-12 h-12 rounded-xl bg-[#9B51E0]/10 text-[#9B51E0] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><i data-lucide="layers" class="w-6 h-6"></i></div>
+    <div class="min-w-0">
+      <div class="text-[15px] font-bold text-fp-text leading-tight group-hover:text-[#9B51E0]">Registrar lote</div>
+      <div class="text-[11px] text-fp-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Entrada de mercancía</div>
+    </div>
+  </a>
+  <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/productos/crear" class="bg-white rounded-xl border border-fp-border p-4 flex items-center gap-4 hover:border-fp-primary/50 hover:shadow-md transition-all group">
+    <div class="w-12 h-12 rounded-xl bg-[#F2994A]/10 text-[#F2994A] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><i data-lucide="package-plus" class="w-6 h-6"></i></div>
+    <div class="min-w-0">
+      <div class="text-[15px] font-bold text-fp-text leading-tight group-hover:text-[#F2994A]">Nuevo producto</div>
+      <div class="text-[11px] text-fp-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Agregar al catálogo</div>
+    </div>
+  </a>
+  <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/admin/usuarios" class="bg-white rounded-xl border border-fp-border p-4 flex items-center gap-4 hover:border-fp-primary/50 hover:shadow-md transition-all group">
+    <div class="w-12 h-12 rounded-xl bg-[#27AE60]/10 text-[#27AE60] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
+    <div class="min-w-0">
+      <div class="text-[15px] font-bold text-fp-text leading-tight group-hover:text-[#27AE60]">Nuevo usuario</div>
+      <div class="text-[11px] text-fp-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Gestionar personal</div>
+    </div>
+  </a>
+</div>
+
+<!-- KPI CARDS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-fp-border p-5 flex flex-col relative overflow-hidden group shadow-sm hover:border-[#27AE60]/50 transition-colors">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#27AE60]"></div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-10 h-10 rounded-lg bg-[#27AE60]/10 text-[#27AE60] flex items-center justify-center"><i data-lucide="receipt" class="w-5 h-5"></i></div>
+      <i data-lucide="arrow-right" class="w-4 h-4 text-fp-muted opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </div>
+    <div class="text-3xl font-black text-fp-text tracking-tight font-mono <?= ((float)($kpis['ventas_dia'] ?? 0)) === 0.0 ? 'text-fp-muted' : '' ?>">
+      <?= fmtCOP((float) ($kpis['ventas_dia'] ?? 0)) ?>
+    </div>
+    <div class="text-[13px] text-fp-muted font-medium mb-4">Ventas del día</div>
+    <div class="pt-3 border-t border-fp-border border-dashed flex items-center gap-1.5 text-[11px] font-bold">
+      <i data-lucide="trending-up" class="w-3.5 h-3.5 text-[#27AE60]"></i>
+      <span class="text-[#27AE60]"><?= count($ventas_hoy) ?> transacciones</span>
+      <span class="text-fp-muted">hoy</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-fp-border p-5 flex flex-col relative overflow-hidden group shadow-sm hover:border-[#2D9CDB]/50 transition-colors">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#2D9CDB]"></div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-10 h-10 rounded-lg bg-[#2D9CDB]/10 text-[#2D9CDB] flex items-center justify-center"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div>
+      <i data-lucide="arrow-right" class="w-4 h-4 text-fp-muted opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </div>
+    <div class="text-3xl font-black text-fp-text tracking-tight font-mono <?= ((int)($kpis['pedidos_pendientes'] ?? 0)) === 0 ? 'text-fp-muted' : '' ?>">
+      <?= (int) ($kpis['pedidos_pendientes'] ?? 0) ?>
+    </div>
+    <div class="text-[13px] text-fp-muted font-medium mb-4">Pedidos pendientes</div>
+    <div class="pt-3 border-t border-fp-border border-dashed flex items-center gap-1.5 text-[11px] font-bold">
+      <i data-lucide="truck" class="w-3.5 h-3.5 text-[#2D9CDB]"></i>
+      <span class="text-[#2D9CDB]">En proceso</span>
+      <span class="text-fp-muted">de atención</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-fp-border p-5 flex flex-col relative overflow-hidden group shadow-sm hover:border-[#F2C94C]/50 transition-colors">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#F2C94C]"></div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-10 h-10 rounded-lg bg-[#F2C94C]/10 text-[#E2B93B] flex items-center justify-center"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+      <i data-lucide="arrow-right" class="w-4 h-4 text-fp-muted opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </div>
+    <div class="text-3xl font-black text-fp-text tracking-tight font-mono <?= ((int)($kpis['alertas_total'] ?? 0)) === 0 ? 'text-fp-muted' : 'text-[#E2B93B]' ?>">
+      <?= (int) ($kpis['alertas_total'] ?? 0) ?>
+    </div>
+    <div class="text-[13px] text-fp-muted font-medium mb-4">Alertas de inventario</div>
+    <div class="pt-3 border-t border-fp-border border-dashed flex items-center gap-1.5 text-[11px] font-bold">
+      <i data-lucide="trending-up" class="w-3.5 h-3.5 text-[#E74C3C]"></i>
+      <span class="text-[#E74C3C]">Requieren</span>
+      <span class="text-fp-muted">atención</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-fp-border p-5 flex flex-col relative overflow-hidden group shadow-sm hover:border-[#1E4C6B]/50 transition-colors">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#1E4C6B]"></div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="w-10 h-10 rounded-lg bg-[#1E4C6B]/10 text-[#1E4C6B] flex items-center justify-center"><i data-lucide="users" class="w-5 h-5"></i></div>
+      <i data-lucide="arrow-right" class="w-4 h-4 text-fp-muted opacity-0 group-hover:opacity-100 transition-opacity"></i>
+    </div>
+    <div class="text-3xl font-black text-fp-text tracking-tight font-mono <?= ((int)($kpis['clientes_total'] ?? 0)) === 0 ? 'text-fp-muted' : '' ?>">
+      <?= (int) ($kpis['clientes_total'] ?? 0) ?>
+    </div>
+    <div class="text-[13px] text-fp-muted font-medium mb-4">Clientes registrados</div>
+    <div class="pt-3 border-t border-fp-border border-dashed flex items-center gap-1.5 text-[11px] font-bold">
+      <i data-lucide="trending-up" class="w-3.5 h-3.5 text-[#27AE60]"></i>
+      <span class="text-[#27AE60]">Total</span>
+      <span class="text-fp-muted">en el sistema</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN INFERIOR -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
+  <!-- Últimas ventas -->
+  <div class="bg-white rounded-xl border border-fp-border flex flex-col shadow-sm">
+    <div class="p-5 border-b border-fp-border flex items-center justify-between bg-fp-bg-main/30">
+      <div class="flex items-center gap-2 font-bold text-[15px] text-fp-text"><i data-lucide="receipt" class="w-5 h-5 text-fp-primary"></i> Últimas ventas del día</div>
+      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/ventas" class="text-[13px] font-bold text-fp-primary hover:underline flex items-center gap-1">Ver todas <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+    </div>
+    
+    <?php if (empty($ventas_hoy)): ?>
+      <div class="flex flex-col items-center justify-center p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-fp-bg-main flex items-center justify-center mb-4"><i data-lucide="shopping-cart" class="text-fp-muted w-8 h-8"></i></div>
+        <div class="text-fp-text font-bold">Sin ventas registradas hoy.</div>
       </div>
-    </div>
-  </aside>
-
-  <!-- TOPBAR -->
-  <header class="topbar" role="banner">
-    <button class="topbar-toggle" onclick="openSidebar()" aria-label="Abrir menú">
-      <i data-lucide="menu"></i>
-    </button>
-    <nav class="breadcrumb" aria-label="Ruta de navegación">
-      <a href="#" class="breadcrumb-item"><i data-lucide="home" style="width:13px;height:13px;"></i> Inicio</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-item current">Dashboard</span>
-    </nav>
-    <div class="topbar-actions">
-      <button class="topbar-icon-btn" aria-label="Notificaciones">
-        <i data-lucide="bell"></i>
-        <?php if (($kpis['alertas_total'] ?? 0) > 0): ?>
-        <span class="notif-dot"></span>
-        <?php endif; ?>
-      </button>
-      <button class="topbar-user">
-        <div class="topbar-avatar"><?= htmlspecialchars($iniciales) ?></div>
-        <div>
-          <div class="topbar-user-name"><?= $nombre ?></div>
-          <div class="topbar-user-role"><?= $rol ?></div>
-        </div>
-      </button>
-    </div>
-  </header>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content" role="main">
-
-    <!-- SALUDO DINÁMICO -->
-    <div class="greeting-row">
-      <div class="greeting-left">
-        <div class="greeting-avatar"><?= htmlspecialchars($iniciales) ?></div>
-        <div class="greeting-text">
-          <h1 id="greeting">Bienvenido, <?= $nombre ?></h1>
-          <p id="greetingDate">Cargando fecha…</p>
-        </div>
-      </div>
-      <div class="greeting-datetime">
-        <div class="greeting-time" id="greetingTime">00:00</div>
-        <div class="greeting-date" id="greetingDateSub">—</div>
-      </div>
-    </div>
-
-    <!-- ACCESOS RÁPIDOS -->
-    <div class="quick-actions" role="region" aria-label="Accesos rápidos">
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/ventas/pos" class="quick-action-btn">
-        <div class="qa-icon blue"><i data-lucide="scan-line"></i></div>
-        <div><div class="qa-label">Nueva venta</div><div class="qa-sub">Punto de venta POS</div></div>
-      </a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes/registrar" class="quick-action-btn">
-        <div class="qa-icon purple"><i data-lucide="layers"></i></div>
-        <div><div class="qa-label">Registrar lote</div><div class="qa-sub">Entrada de mercancía</div></div>
-      </a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/productos/crear" class="quick-action-btn">
-        <div class="qa-icon amber"><i data-lucide="package-plus"></i></div>
-        <div><div class="qa-label">Nuevo producto</div><div class="qa-sub">Agregar al catálogo</div></div>
-      </a>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/admin/usuarios" class="quick-action-btn">
-        <div class="qa-icon green"><i data-lucide="user-plus"></i></div>
-        <div><div class="qa-label">Nuevo usuario</div><div class="qa-sub">Gestionar personal</div></div>
-      </a>
-    </div>
-
-    <!-- KPI CARDS -->
-    <div class="kpi-row" role="region" aria-label="Indicadores clave">
-      <!-- Ventas del día -->
-      <a href="/ventas" class="kpi-card success">
-        <div class="kpi-card-top">
-          <div class="kpi-icon"><i data-lucide="receipt"></i></div>
-          <div class="kpi-arrow"><i data-lucide="arrow-right"></i></div>
-        </div>
-        <div class="kpi-value <?= ((float)($kpis['ventas_dia'] ?? 0)) === 0.0 ? 'is-zero' : '' ?>"><?= fmtCOP((float) ($kpis['ventas_dia'] ?? 0)) ?></div>
-        <div class="kpi-label">Ventas del día</div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-trend kpi-trend-up">
-          <div class="kpi-trend-icon"><i data-lucide="trending-up"></i></div>
-          <span><?= count($ventas_hoy) ?> transacciones</span>
-          <span class="kpi-trend-text">hoy</span>
-        </div>
-      </a>
-      <!-- Pedidos pendientes -->
-      <a href="/pedidos" class="kpi-card info">
-        <div class="kpi-card-top">
-          <div class="kpi-icon"><i data-lucide="shopping-bag"></i></div>
-          <div class="kpi-arrow"><i data-lucide="arrow-right"></i></div>
-        </div>
-        <div class="kpi-value <?= ((int)($kpis['pedidos_pendientes'] ?? 0)) === 0 ? 'is-zero' : '' ?>"><?= (int) ($kpis['pedidos_pendientes'] ?? 0) ?></div>
-        <div class="kpi-label">Pedidos pendientes</div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-trend kpi-trend-up">
-          <div class="kpi-trend-icon"><i data-lucide="truck"></i></div>
-          <span>En proceso</span>
-          <span class="kpi-trend-text">de atención</span>
-        </div>
-      </a>
-      <!-- Alertas inventario -->
-      <a href="inventario/alertas" class="kpi-card warning">
-        <div class="kpi-card-top">
-          <div class="kpi-icon"><i data-lucide="alert-triangle"></i></div>
-          <div class="kpi-arrow"><i data-lucide="arrow-right"></i></div>
-        </div>
-        <div class="kpi-value <?= ((int)($kpis['alertas_total'] ?? 0)) === 0 ? 'is-zero' : '' ?>"><?= (int) ($kpis['alertas_total'] ?? 0) ?></div>
-        <div class="kpi-label">Alertas de inventario</div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-trend kpi-trend-down">
-          <div class="kpi-trend-icon"><i data-lucide="trending-up"></i></div>
-          <span>Requieren</span>
-          <span class="kpi-trend-text">atención</span>
-        </div>
-      </a>
-      <!-- Clientes -->
-      <a href="#" class="kpi-card">
-        <div class="kpi-card-top">
-          <div class="kpi-icon"><i data-lucide="users"></i></div>
-          <div class="kpi-arrow"><i data-lucide="arrow-right"></i></div>
-        </div>
-        <div class="kpi-value <?= ((int)($kpis['clientes_total'] ?? 0)) === 0 ? 'is-zero' : '' ?>"><?= (int) ($kpis['clientes_total'] ?? 0) ?></div>
-        <div class="kpi-label">Clientes registrados</div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-trend kpi-trend-up">
-          <div class="kpi-trend-icon"><i data-lucide="trending-up"></i></div>
-          <span>Total</span>
-          <span class="kpi-trend-text">en el sistema</span>
-        </div>
-      </a>
-    </div>
-
-    <!-- SECCIÓN INFERIOR -->
-    <div class="bottom-grid">
-      <!-- Últimas ventas -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title"><i data-lucide="receipt"></i>Últimas ventas del día</div>
-          <a href="/ventas" class="link-btn">Ver todas <i data-lucide="arrow-right"></i></a>
-        </div>
-        <?php if (empty($ventas_hoy)): ?>
-          <div class="empty-state empty-ventas visible">
-            <i data-lucide="shopping-cart"></i>
-            Sin ventas registradas hoy.
-          </div>
-        <?php else: ?>
-        <table class="interactions-table" aria-label="Últimas ventas registradas">
-          <thead><tr><th>Comprobante</th><th>Canal</th><th>Total</th><th>Vendedor</th></tr></thead>
-          <tbody>
-          <?php foreach ($ventas_hoy as $v): ?>
-            <tr>
-              <td><span style="font-family:var(--font-mono);font-size:12px;color:var(--color-primary);"><?= htmlspecialchars($v['numero_comprobante']) ?></span></td>
-              <td><span class="int-badge int-presencial"><i data-lucide="store"></i>Presencial</span></td>
-              <td><strong style="color:var(--color-success);"><?= fmtCOP((float)$v['total']) ?></strong></td>
-              <td style="font-size:12px;color:var(--color-text-secondary);"><?= htmlspecialchars($v['vendedor_nombre'] ?? '—') ?></td>
+    <?php else: ?>
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-left border-collapse min-w-[500px]">
+          <thead>
+            <tr class="bg-white border-b border-fp-border text-[11px] uppercase tracking-[1.5px] font-bold text-fp-muted">
+              <th class="px-5 py-4">Comprobante</th>
+              <th class="px-5 py-4">Canal</th>
+              <th class="px-5 py-4 text-right">Total</th>
+              <th class="px-5 py-4">Vendedor</th>
             </tr>
-          <?php endforeach; ?>
+          </thead>
+          <tbody class="divide-y divide-fp-border/50 text-[13px] font-medium text-fp-text">
+            <?php foreach ($ventas_hoy as $v): ?>
+              <tr class="hover:bg-fp-bg-main/50 transition-colors">
+                <td class="px-5 py-3.5 font-mono text-fp-primary font-bold"><?= htmlspecialchars($v['numero_comprobante']) ?></td>
+                <td class="px-5 py-3.5">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#27AE60]/10 text-[#27AE60] text-[11px] font-bold"><i data-lucide="store" class="w-3 h-3"></i> Presencial</span>
+                </td>
+                <td class="px-5 py-3.5 text-right font-bold text-[#27AE60] font-mono"><?= fmtCOP((float)$v['total']) ?></td>
+                <td class="px-5 py-3.5 text-fp-muted"><?= htmlspecialchars($v['vendedor_nombre'] ?? '—') ?></td>
+              </tr>
+            <?php endforeach; ?>
           </tbody>
         </table>
-        <?php endif; ?>
       </div>
+    <?php endif; ?>
+  </div>
 
-      <!-- Alertas de inventario -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title"><i data-lucide="alert-triangle"></i>Alertas de inventario</div>
-          <a href="inventario/alertas" class="link-btn">Ver todas <i data-lucide="arrow-right"></i></a>
-        </div>
-        <?php if (empty($alertas)): ?>
-          <div class="empty-state empty-alertas visible">
-            <i data-lucide="check-circle"></i>
-            Sin alertas activas. ¡Todo bajo control!
-          </div>
-        <?php else: ?>
-        <div class="stock-list">
-        <?php foreach (array_slice($alertas, 0, 4) as $alerta): ?>
-          <div class="stock-item">
-            <div class="stock-item-top">
-              <div>
-                <div class="stock-product-name"><?= htmlspecialchars($alerta['producto_nombre'] ?? '—') ?></div>
-                <div class="stock-product-lab"><?= htmlspecialchars($alerta['mensaje'] ?? '') ?></div>
-              </div>
-              <?php if ($alerta['tipo'] === 'stock_minimo'): ?>
-              <span class="stock-badge-low"><i data-lucide="alert-triangle"></i>Stock mínimo</span>
-              <?php else: ?>
-              <span class="stock-badge-low stock-badge-vence"><i data-lucide="clock"></i>Vence pronto</span>
-              <?php endif; ?>
-            </div>
-            <div class="stock-item-actions">
-              <span style="font-size:11px;color:var(--color-text-secondary);"><?= htmlspecialchars($alerta['tipo'] === 'stock_minimo' ? 'Stock insuficiente' : 'Lote: ' . ($alerta['numero_lote'] ?? '—')) ?></span>
-              <a href="/inventario/alertas" class="stock-action-btn">Ver detalle <i data-lucide="arrow-right"></i></a>
-            </div>
-          </div>
-        <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-      </div>
+  <!-- Alertas de inventario -->
+  <div class="bg-white rounded-xl border border-fp-border flex flex-col shadow-sm">
+    <div class="p-5 border-b border-fp-border flex items-center justify-between bg-fp-bg-main/30">
+      <div class="flex items-center gap-2 font-bold text-[15px] text-fp-text"><i data-lucide="alert-triangle" class="w-5 h-5 text-fp-warning"></i> Alertas de inventario</div>
+      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/alertas" class="text-[13px] font-bold text-fp-primary hover:underline flex items-center gap-1">Ver todas <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
     </div>
 
-  </main>
+    <?php if (empty($alertas)): ?>
+      <div class="flex flex-col items-center justify-center p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4"><i data-lucide="check-circle" class="text-[#27AE60] w-8 h-8"></i></div>
+        <div class="text-fp-text font-bold">Sin alertas activas.</div>
+        <p class="text-[13px] text-fp-muted mt-1">¡Todo bajo control!</p>
+      </div>
+    <?php else: ?>
+      <div class="flex flex-col divide-y divide-fp-border/50">
+        <?php foreach (array_slice($alertas, 0, 4) as $alerta): ?>
+          <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-fp-bg-main/50 transition-colors">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1.5">
+                <div class="font-bold text-[14px] text-fp-text leading-tight"><?= htmlspecialchars($alerta['producto_nombre'] ?? '—') ?></div>
+                <?php if ($alerta['tipo'] === 'stock_minimo'): ?>
+                  <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#F2C94C]/10 text-[#D4AC0D]"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Stock mínimo</span>
+                <?php else: ?>
+                  <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#E74C3C]/10 text-[#E74C3C]"><i data-lucide="clock" class="w-3 h-3"></i> Vence pronto</span>
+                <?php endif; ?>
+              </div>
+              <div class="text-[12px] text-fp-muted mb-1"><?= htmlspecialchars($alerta['mensaje'] ?? '') ?></div>
+              <div class="text-[11px] font-semibold text-fp-text/60">
+                <?= htmlspecialchars($alerta['tipo'] === 'stock_minimo' ? 'Stock insuficiente para operar' : 'Lote: ' . ($alerta['numero_lote'] ?? '—')) ?>
+              </div>
+            </div>
+            <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/alertas" class="shrink-0 self-start sm:self-center px-3 py-1.5 bg-white border border-fp-border hover:border-fp-primary hover:text-fp-primary rounded-lg text-[12px] font-bold text-fp-text transition-colors flex items-center gap-1.5">
+              Ver detalle <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
 </div>
 
 <script>
-  lucide.createIcons();
-
   /* Saludo dinámico y reloj */
-  function updateDateTime() {
+  function updateCustomTime() {
     const now  = new Date();
     const h    = now.getHours();
     const dias  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
     const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     const saludo = h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches';
     const emoji  = h < 12 ? '☀️' : h < 18 ? '🌤️' : '🌙';
+    
     document.getElementById('greeting').textContent = `${saludo}, <?= $nombre ?> ${emoji}`;
     document.getElementById('greetingDate').textContent = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
-    document.getElementById('greetingTime').textContent = `${String(h).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    document.getElementById('greetingDateSub').textContent = `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()].slice(0,3)}. ${now.getFullYear()}`;
+    
+    const timeEl = document.getElementById('greetingTime');
+    const subEl = document.getElementById('greetingDateSub');
+    if(timeEl) timeEl.textContent = `${String(h).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if(subEl) subEl.textContent = `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()].slice(0,3)}. ${now.getFullYear()}`;
   }
-  updateDateTime();
-  setInterval(updateDateTime, 1000);
-
-  /* Toast */
-  function showToast(msg, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const icons = { success:'circle-check', warning:'alert-triangle', info:'info', error:'circle-x' };
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<i data-lucide="${icons[type]}"></i><div class="toast-text"><strong>${msg}</strong></div>`;
-    container.appendChild(toast);
-    lucide.createIcons();
-    setTimeout(() => { toast.style.transition='opacity 0.3s,transform 0.3s'; toast.style.opacity='0'; toast.style.transform='translateX(120%)'; setTimeout(()=>toast.remove(),300); }, 4000);
-  }
-
-  /* Sidebar mobile */
-  function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+  updateCustomTime();
+  setInterval(updateCustomTime, 1000);
 
   /* Flash message desde sesión PHP */
   <?php if (!empty($_SESSION['flash_msg'])): ?>
-  setTimeout(() => showToast('<?= addslashes($_SESSION['flash_msg']) ?>', '<?= addslashes($_SESSION['flash_tipo'] ?? 'success') ?>'), 500);
+    // TODO: Require global toast in base.php
   <?php unset($_SESSION['flash_msg'], $_SESSION['flash_tipo']); ?>
   <?php endif; ?>
-
-  /* Alertas de inventario al cargar */
-  <?php if (($kpis['alertas_total'] ?? 0) > 0): ?>
-  setTimeout(() => showToast('<?= (int)$kpis['alertas_total'] ?> alertas de inventario requieren atención', 'warning'), 1200);
-  <?php endif; ?>
 </script>
-</body>
-</html>
+
+<?php 
+$contenido = ob_get_clean(); 
+require __DIR__ . '/../layouts/base.php'; 
+?>

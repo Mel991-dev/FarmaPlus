@@ -84,21 +84,33 @@ $titulo = 'Punto de Venta';
       <i data-lucide="clock" class="w-4 h-4"></i> <span id="posTime">00:00</span>
     </div>
 
-    <!-- Vendedor -->
+    <!-- Vendedor y Botón Carrito -->
     <div class="flex items-center gap-3">
       <div class="hidden sm:flex flex-col items-end">
         <span class="text-[13px] font-bold text-fp-text leading-none"><?= htmlspecialchars($_SESSION['nombres'] ?? '') ?></span>
         <span class="text-[11px] text-fp-muted mt-1 uppercase tracking-wider font-semibold">Vendedor</span>
       </div>
-      <div class="w-8 h-8 rounded-full bg-fp-primary flex items-center justify-center text-white text-xs font-bold shadow-sm">
+      <div class="hidden sm:flex w-8 h-8 rounded-full bg-fp-primary items-center justify-center text-white text-xs font-bold shadow-sm">
         <?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? '', 0, 1)) ?>
       </div>
-      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/dashboard" class="ml-4 px-3 py-1.5 bg-fp-bg-main border border-fp-border/80 text-fp-text text-sm font-semibold rounded-lg hover:bg-fp-border/50 transition-colors flex items-center gap-2 shrink-0">
+      
+      <!-- Botón Carrito Móvil -->
+      <button onclick="togglePosCart()" class="lg:hidden px-3 py-1.5 bg-fp-secondary text-white text-[13px] font-bold rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-[#8E44AD] transition-colors">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Caja
+      </button>
+
+      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/dashboard" class="hidden sm:flex ml-2 px-3 py-1.5 bg-fp-bg-main border border-fp-border/80 text-fp-text text-sm font-semibold rounded-lg hover:bg-fp-border/50 transition-colors items-center gap-2 shrink-0">
         <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+      </a>
+      <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/dashboard" class="sm:hidden ml-1 p-2 bg-fp-bg-main rounded-lg text-fp-text hover:bg-fp-border/50 transition-colors">
+        <i data-lucide="log-out" class="w-5 h-5"></i>
       </a>
     </div>
   </div>
 </header>
+
+<!-- Overlay Cart Móvil -->
+<div id="posCartOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity" onclick="togglePosCart()"></div>
 
 
 <!-- ================= POS SHELL (Dos Paneles) ================= -->
@@ -143,7 +155,7 @@ $titulo = 'Punto de Venta';
 
     <!-- Resultados en Grilla -->
     <div class="flex-1 overflow-y-auto p-4 bg-[#f8fafc]">
-      <div id="posResults" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max gap-4 pb-20">
+      <div id="posResults" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 auto-rows-max gap-4 pb-20">
         <!-- Renderizados por JS -->
       </div>
     </div>
@@ -151,12 +163,15 @@ $titulo = 'Punto de Venta';
   </section>
 
   <!-- PANEL DERECHO: CARRITO -->
-  <section class="w-[360px] lg:w-[400px] flex flex-col bg-white shrink-0 z-20">
+  <section id="posCartPanel" class="fixed inset-y-0 right-0 z-50 transform translate-x-full lg:translate-x-0 lg:static lg:z-20 w-max sm:w-[360px] lg:w-[400px] flex flex-col bg-white shrink-0 shadow-2xl lg:shadow-[none] transition-transform duration-300">
     
     <!-- Titulo del Carrito -->
     <div class="h-[60px] px-5 border-b border-fp-border/60 flex items-center justify-between shrink-0 bg-white">
       <div class="flex items-center gap-2.5 font-bold text-fp-text text-lg">
-        <i data-lucide="shopping-cart" class="w-5 h-5 text-fp-primary"></i> Caja
+        <button onclick="togglePosCart()" class="lg:hidden p-1 -ml-2 text-fp-muted hover:text-fp-text transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <i data-lucide="shopping-cart" class="w-5 h-5 text-fp-primary hidden lg:block"></i> Caja
         <span id="cartCount" class="bg-fp-primary text-white text-[11px] px-2 py-0.5 rounded-full relative -top-[1px]">0</span>
       </div>
       <button onclick="clearCart()" class="text-[13px] font-semibold text-fp-muted hover:text-fp-error flex items-center gap-1.5 transition-colors" title="Vaciar Carrito">
@@ -661,6 +676,22 @@ function showToast(msg, type = 'success') {
     toast.classList.add('translate-x-full', 'opacity-0');
     setTimeout(() => toast.remove(), 300);
   }, 3500);
+}
+
+/* ── Toggle Cart Drawer Móvil ────────────────────────────── */
+function togglePosCart() {
+  const panel = document.getElementById('posCartPanel');
+  const overlay = document.getElementById('posCartOverlay');
+  
+  panel.classList.toggle('translate-x-full');
+  
+  if (!panel.classList.contains('translate-x-full')) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+  } else {
+    overlay.classList.add('opacity-0');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  }
 }
 
 /* ── Init ──────────────────────────────────────────────────── */
