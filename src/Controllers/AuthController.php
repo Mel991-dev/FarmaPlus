@@ -310,7 +310,7 @@ class AuthController
             'auxiliar'      => '/inventario/productos',
             'vendedor'      => '/ventas/pos',
             'repartidor'    => '/pedidos/repartidor',
-            'cliente'       => '/tienda',
+            'cliente'       => '/mi-cuenta',
         ];
 
         $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
