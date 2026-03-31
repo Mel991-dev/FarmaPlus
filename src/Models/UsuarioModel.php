@@ -66,6 +66,15 @@ class UsuarioModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerRolIdPorNombre(string $nombreRol): int|false
+    {
+        $sql  = "SELECT rol_id FROM roles WHERE nombre = :nombre LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':nombre' => $nombreRol]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int) $row['rol_id'] : false;
+    }
+
     /* ── CREACIÓN / MODIFICACIÓN ─────────────────────────────── */
 
     public function crear(array $datos): string
