@@ -148,10 +148,14 @@ $blocked = $blocked ?? false;
           Iniciar sesión
         </button>
 
+        <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #64748B;">
+          ¿No tienes una cuenta? <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/registro" style="color: var(--color-primary); font-weight: 600; text-decoration: none;">Regístrate aquí</a>
+        </div>
+
       </form>
 
       <footer class="form-footer">
-        <p>Sistema restringido — solo <strong>personal autorizado</strong></p>
+        <p>Sistema FarmaPlus — Acceso para <strong>Personal y Clientes</strong></p>
         <p class="version-tag">v1.0.0 · FarmaPlus CRM · Colombia</p>
       </footer>
 
