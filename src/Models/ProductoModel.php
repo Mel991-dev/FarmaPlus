@@ -70,22 +70,51 @@ class ProductoModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Listar productos para la tienda (sin control especial) */
-    public function listarParaTienda(): array
+    /** Listar productos para la tienda (sin control especial, con filtros opcionales) */
+    public function listarParaTienda(?int $categoriaId = null, string $busqueda = ''): array
     {
+        $where  = ['p.control_especial = 0', 'p.activo = 1'];
+        $params = [];
+
+        if ($categoriaId > 0) {
+            $where[]                 = 'p.categoria_id = :categoria_id';
+            $params[':categoria_id'] = $categoriaId;
+        }
+        if (!empty(trim($busqueda))) {
+            $where[]             = '(p.nombre LIKE :busqueda OR p.principio_activo LIKE :busqueda)';
+            $params[':busqueda'] = '%' . trim($busqueda) . '%';
+        }
+
+        $whereStr = implode(' AND ', $where);
+
         $sql  = "SELECT p.*,
                         c.nombre AS categoria_nombre,
                         COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual
                  FROM productos p
                  LEFT JOIN categorias_producto c ON p.categoria_id = c.categoria_id
                  LEFT JOIN lotes l ON p.producto_id = l.producto_id AND l.activo = 1
-                 WHERE p.control_especial = 0 AND p.activo = 1
+                 WHERE {$whereStr}
                  GROUP BY p.producto_id
+                 HAVING stock_actual > 0
                  ORDER BY p.nombre ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /** Listar todas las categorías activas con productos disponibles para la tienda. */
+    public function listarCategorias(): array
+    {
+        $sql  = "SELECT DISTINCT c.categoria_id, c.nombre
+                 FROM categorias_producto c
+                 INNER JOIN productos p ON p.categoria_id = c.categoria_id
+                 WHERE p.control_especial = 0 AND p.activo = 1
+                 ORDER BY c.nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     public function crear(array $datos): string
     {
