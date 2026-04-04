@@ -86,10 +86,161 @@ class PedidoModel
                  INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
                  LEFT JOIN direcciones_entrega d ON p.direccion_entrega_id = d.direccion_id
                  WHERE p.repartidor_id = :repartidor_id
-                   AND p.estado NOT IN ('entregado', 'cancelado')
+                   AND p.estado NOT IN ('entregado', 'cancelado', 'devuelto_fallido')
                  ORDER BY p.created_at ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':repartidor_id' => $repartidorId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Buscar pedido por la referencia externa de MercadoPago.
+     * Usado por el WebhookController para identificar el pedido al recibir confirmación de pago.
+     */
+    public function obtenerPorMpReferencia(string $referencia): array|false
+    {
+        $sql  = "SELECT p.*, CONCAT(u.nombres, ' ', u.apellidos) AS cliente_nombre,
+                        u.correo AS cliente_correo
+                 FROM pedidos p
+                 INNER JOIN clientes c ON p.cliente_id = c.cliente_id
+                 INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
+                 WHERE p.mp_referencia = :ref LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':ref' => $referencia]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Guardar datos del pago aprobado por MercadoPago.
+     * Intenta primero con todas las columnas; si falla (columna no existe),
+     * hace un UPDATE mínimo solo con lo esencial.
+     */
+    public function actualizarMpPago(int $id, string $mpPaymentId, string $mpStatus): int
+    {
+        try {
+            $sql  = "UPDATE pedidos 
+                     SET mp_payment_id = :mp_payment_id,
+                         mp_status     = :mp_status,
+                         estado        = 'pagado',
+                         updated_at    = NOW()
+                     WHERE pedido_id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                ':mp_payment_id' => $mpPaymentId,
+                ':mp_status'     => $mpStatus,
+                ':id'            => $id,
+            ]);
+            return $stmt->rowCount();
+        } catch (\PDOException $e) {
+            // Fallback: columnas mp_status / updated_at aún no existen en BD
+            // Solo actualiza estado y mp_payment_id si la columna existe
+            $sqlFallback = "UPDATE pedidos SET estado = 'pagado' WHERE pedido_id = :id";
+            $stmt = $this->db->prepare($sqlFallback);
+            $stmt->execute([':id' => $id]);
+            return $stmt->rowCount();
+        }
+    }
+
+
+    /**
+     * Listar pedidos con filtros y paginación para el panel de administración.
+     */
+    public function listarConFiltros(array $filtros = [], int $limit = 20, int $offset = 0): array
+    {
+        $where  = ['1=1'];
+        $params = [];
+
+        if (!empty($filtros['estado'])) {
+            $where[]              = 'p.estado = :estado';
+            $params[':estado']    = $filtros['estado'];
+        }
+        if (!empty($filtros['cliente_id'])) {
+            $where[]                   = 'p.cliente_id = :cliente_id';
+            $params[':cliente_id']     = $filtros['cliente_id'];
+        }
+
+        $whereStr = implode(' AND ', $where);
+
+        $sql  = "SELECT p.*,
+                        CONCAT(u.nombres, ' ', u.apellidos) AS cliente_nombre,
+                        u.correo AS cliente_correo,
+                        r.nombres AS repartidor_nombre,
+                        d.direccion, d.ciudad
+                 FROM pedidos p
+                 INNER JOIN clientes c ON p.cliente_id = c.cliente_id
+                 INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
+                 LEFT JOIN usuarios r ON p.repartidor_id = r.usuario_id
+                 LEFT JOIN direcciones_entrega d ON p.direccion_entrega_id = d.direccion_id
+                 WHERE {$whereStr}
+                 ORDER BY p.created_at DESC
+                 LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Contar total de pedidos para paginación.
+     */
+    public function contarPedidos(array $filtros = []): int
+    {
+        $where  = ['1=1'];
+        $params = [];
+
+        if (!empty($filtros['estado'])) {
+            $where[]           = 'p.estado = :estado';
+            $params[':estado'] = $filtros['estado'];
+        }
+
+        $whereStr = implode(' AND ', $where);
+        $sql      = "SELECT COUNT(*) FROM pedidos p WHERE {$whereStr}";
+        $stmt     = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Obtener usuarios con rol 'repartidor' para asignar pedidos.
+     */
+    public function obtenerRepartidoresDisponibles(): array
+    {
+        $sql  = "SELECT usuario_id, CONCAT(nombres, ' ', apellidos) AS nombre, correo, telefono
+                 FROM usuarios
+                 WHERE rol = 'repartidor' AND activo = 1
+                 ORDER BY nombres";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Guardar observación de devolución cuando el repartidor no puede entregar.
+     */
+    public function registrarDevolucion(int $pedidoId, string $observacion): int
+    {
+        $sql  = "UPDATE pedidos 
+                 SET estado = 'devuelto_fallido', observacion_devolucion = :obs, updated_at = NOW()
+                 WHERE pedido_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':obs' => $observacion, ':id' => $pedidoId]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Obtener email del gerente para notificaciones de devolución.
+     */
+    public function obtenerEmailGerente(): string|false
+    {
+        $sql  = "SELECT correo FROM usuarios WHERE rol IN ('gerente','administrador') AND activo = 1 ORDER BY usuario_id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
 }
+
