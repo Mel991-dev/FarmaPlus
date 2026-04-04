@@ -22,6 +22,14 @@
 
     <div class="h-[1px] bg-white/5 mx-3 my-2"></div>
 
+    <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mt-4 mb-2">Tienda</span>
+
+    <a href="<?= $basePath ?>/tienda" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-white/85 text-sm font-medium transition-colors hover:bg-fp-primary hover:text-white">
+      <i data-lucide="store" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Catálogo de Productos
+    </a>
+
+    <div class="h-[1px] bg-white/5 mx-3 my-2"></div>
+
     <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mt-4 mb-2">Mis Compras</span>
 
     <a href="<?= $basePath ?>/mi-cuenta/pedidos" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-white/85 text-sm font-medium transition-colors hover:bg-fp-primary hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], '/pedidos') !== false) ? 'bg-fp-secondary text-white' : '' ?>">
