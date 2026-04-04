@@ -1,8 +1,12 @@
 -- ============================================================
 -- FarmaPlus CRM — Schema de base de datos
--- MySQL 8.0 compatible · 3FN · 17 tablas
+-- MySQL 5.7+ compatible · 3FN · 17 tablas
+-- Última actualización: Semana 4 (E-commerce + Domicilios)
 -- ============================================================
--- Ejecutar en MySQL Workbench como usuario root
+-- Instrucciones:
+--   1. Ejecutar en phpMyAdmin o línea de comandos MySQL como root
+--   2. Este script crea la BD completa desde cero (idempotente)
+--   3. Incluye todos los cambios de la migración semana4
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS farmaplus
@@ -20,6 +24,15 @@ CREATE TABLE IF NOT EXISTS roles (
     descripcion VARCHAR(255) NOT NULL DEFAULT '',
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Roles base del sistema
+INSERT IGNORE INTO roles (nombre, descripcion) VALUES
+    ('admin',       'Administrador con acceso total al sistema'),
+    ('farmaceutico', 'Farmacéutico regente — validación y control especial'),
+    ('cajero',      'Auxiliar de ventas presenciales (POS)'),
+    ('bodeguero',   'Gestión de inventario y recepción de lotes'),
+    ('repartidor',  'Domicilios — actualización de estado de pedidos'),
+    ('cliente',     'Cliente registrado en la tienda en línea');
 
 -- ============================================================
 -- 2. categorias_producto
@@ -75,12 +88,13 @@ CREATE TABLE IF NOT EXISTS usuarios (
 -- 5. clientes (extensión de usuarios para el rol cliente)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS clientes (
-    cliente_id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id            INT UNSIGNED NOT NULL UNIQUE,
-    consentimiento_ley1581 TINYINT(1)  NOT NULL DEFAULT 0,
-    fecha_consentimiento  DATETIME     NULL,
-    ip_consentimiento     VARCHAR(45)  NOT NULL DEFAULT '',
-    created_at            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    cliente_id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id             INT UNSIGNED NOT NULL UNIQUE,
+    consentimiento_ley1581 TINYINT(1)  NOT NULL DEFAULT 0
+        COMMENT 'Ley 1581/2012 — Habeas Data',
+    fecha_consentimiento   DATETIME     NULL,
+    ip_consentimiento      VARCHAR(45)  NOT NULL DEFAULT '',
+    created_at             DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_clientes_usuario FOREIGN KEY (usuario_id)
         REFERENCES usuarios (usuario_id)
         ON UPDATE RESTRICT ON DELETE RESTRICT
@@ -116,7 +130,8 @@ CREATE TABLE IF NOT EXISTS productos (
     concentracion      VARCHAR(80)  NOT NULL DEFAULT '',
     forma_farmaceutica VARCHAR(80)  NOT NULL DEFAULT '',
     codigo_invima      VARCHAR(50)  NOT NULL COMMENT 'Obligatorio — Decreto 677/1995',
-    control_especial   TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Ley 2300/2023 — antibióticos/opioides/psicotrópicos',
+    control_especial   TINYINT(1)   NOT NULL DEFAULT 0
+        COMMENT 'Ley 2300/2023 — antibióticos/opioides/psicotrópicos',
     precio_compra      DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     precio_venta       DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     stock_minimo       INT UNSIGNED  NOT NULL DEFAULT 10,
@@ -147,9 +162,9 @@ CREATE TABLE IF NOT EXISTS lotes (
     registrado_por    INT UNSIGNED NOT NULL,
     activo            TINYINT(1)   NOT NULL DEFAULT 1,
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_lotes_producto   FOREIGN KEY (producto_id)   REFERENCES productos (producto_id)  ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_lotes_proveedor  FOREIGN KEY (proveedor_id)  REFERENCES proveedores (proveedor_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_lotes_usuario    FOREIGN KEY (registrado_por) REFERENCES usuarios (usuario_id)   ON UPDATE RESTRICT ON DELETE RESTRICT
+    CONSTRAINT fk_lotes_producto  FOREIGN KEY (producto_id)    REFERENCES productos   (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_lotes_proveedor FOREIGN KEY (proveedor_id)   REFERENCES proveedores (proveedor_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_lotes_usuario   FOREIGN KEY (registrado_por) REFERENCES usuarios    (usuario_id)  ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -165,8 +180,8 @@ CREATE TABLE IF NOT EXISTS ajustes_stock (
     observacion VARCHAR(255) NOT NULL DEFAULT '',
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ajustes_producto FOREIGN KEY (producto_id) REFERENCES productos (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_ajustes_lote     FOREIGN KEY (lote_id)     REFERENCES lotes    (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_ajustes_usuario  FOREIGN KEY (usuario_id)  REFERENCES usuarios (usuario_id)  ON UPDATE RESTRICT ON DELETE RESTRICT
+    CONSTRAINT fk_ajustes_lote     FOREIGN KEY (lote_id)     REFERENCES lotes     (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_ajustes_usuario  FOREIGN KEY (usuario_id)  REFERENCES usuarios  (usuario_id)  ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -182,45 +197,68 @@ CREATE TABLE IF NOT EXISTS alertas (
     resuelta_at DATETIME     NULL,
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_alertas_producto FOREIGN KEY (producto_id) REFERENCES productos (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_alertas_lote     FOREIGN KEY (lote_id)     REFERENCES lotes    (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT
+    CONSTRAINT fk_alertas_lote     FOREIGN KEY (lote_id)     REFERENCES lotes     (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- 11. pedidos (pedidos en línea)
+-- 11. pedidos (pedidos en línea — e-commerce)
+-- Cambios semana 4:
+--   · mp_referencia ahora es NULL (se asigna tras crear el pedido)
+--   · mp_payment_id permanece con DEFAULT '' (puede ser NULL en nuevas BD)
+--   · mp_status: estado del pago devuelto por MercadoPago
+--   · observacion_devolucion: motivo registrado por el repartidor
+--   · Índices de rendimiento: mp_referencia y (repartidor_id, estado)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pedidos (
-    pedido_id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    cliente_id          INT UNSIGNED NOT NULL,
-    direccion_entrega_id INT UNSIGNED NOT NULL,
-    repartidor_id       INT UNSIGNED NULL,
-    estado              ENUM('pendiente','pagado','en_preparacion','en_camino','entregado','cancelado','devuelto') NOT NULL DEFAULT 'pendiente',
-    subtotal            DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-    costo_envio         DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-    total               DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-    mp_referencia       VARCHAR(100) NOT NULL DEFAULT '',
-    mp_payment_id       VARCHAR(100) NOT NULL DEFAULT '',
-    observacion         TEXT         NULL,
-    created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_pedidos_cliente      FOREIGN KEY (cliente_id)           REFERENCES clientes          (cliente_id)   ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_pedidos_direccion    FOREIGN KEY (direccion_entrega_id) REFERENCES direcciones_entrega (direccion_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_pedidos_repartidor   FOREIGN KEY (repartidor_id)        REFERENCES usuarios           (usuario_id)   ON UPDATE RESTRICT ON DELETE RESTRICT
+    pedido_id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    cliente_id            INT UNSIGNED  NOT NULL,
+    direccion_entrega_id  INT UNSIGNED  NOT NULL,
+    repartidor_id         INT UNSIGNED  NULL,
+    estado                ENUM('pendiente','pagado','en_preparacion','en_camino','entregado','cancelado','devuelto')
+                                        NOT NULL DEFAULT 'pendiente',
+    subtotal              DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    costo_envio           DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total                 DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    mp_referencia         VARCHAR(100)  NULL
+        COMMENT 'Referencia externa enviada a MercadoPago (= pedido_id)',
+    mp_payment_id         VARCHAR(100)  NOT NULL DEFAULT ''
+        COMMENT 'ID del pago retornado por MercadoPago',
+    mp_status             VARCHAR(50)   NULL
+        COMMENT 'Estado del pago: approved, rejected, pending, in_process',
+    observacion           TEXT          NULL,
+    observacion_devolucion TEXT         NULL
+        COMMENT 'Motivo de devolución registrado por el repartidor',
+    created_at            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_pedidos_mp_referencia (mp_referencia),
+    KEY idx_pedidos_repartidor    (repartidor_id, estado),
+    CONSTRAINT fk_pedidos_cliente    FOREIGN KEY (cliente_id)           REFERENCES clientes          (cliente_id)   ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_pedidos_direccion  FOREIGN KEY (direccion_entrega_id) REFERENCES direcciones_entrega (direccion_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_pedidos_repartidor FOREIGN KEY (repartidor_id)        REFERENCES usuarios           (usuario_id)   ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
 -- 12. detalle_pedido
+-- Cambios semana 4:
+--   · lote_id pasa a INT NULL (sin FK fk_dp_lote)
+--     → el lote se asigna post-pago mediante algoritmo FEFO
+--     → permite insertar pedidos online sin lote inmediato
 -- ============================================================
 CREATE TABLE IF NOT EXISTS detalle_pedido (
-    detalle_id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    pedido_id       INT UNSIGNED    NOT NULL,
-    producto_id     INT UNSIGNED    NOT NULL,
-    lote_id         INT UNSIGNED    NOT NULL COMMENT 'Trazabilidad INVIMA',
-    cantidad        INT UNSIGNED    NOT NULL,
-    precio_unitario DECIMAL(12,2)   NOT NULL,
-    subtotal        DECIMAL(12,2)   NOT NULL,
+    detalle_id      INT UNSIGNED  AUTO_INCREMENT PRIMARY KEY,
+    pedido_id       INT UNSIGNED  NOT NULL,
+    producto_id     INT UNSIGNED  NOT NULL,
+    lote_id         INT           NULL
+        COMMENT 'Opcional: se asigna al procesar el envío (FEFO post-pago)',
+    cantidad        INT UNSIGNED  NOT NULL,
+    precio_unitario DECIMAL(12,2) NOT NULL,
+    subtotal        DECIMAL(12,2) NOT NULL,
+    KEY fk_dp_pedido   (pedido_id),
+    KEY fk_dp_producto (producto_id),
+    KEY fk_dp_lote     (lote_id),
     CONSTRAINT fk_dp_pedido   FOREIGN KEY (pedido_id)   REFERENCES pedidos   (pedido_id)   ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_dp_producto FOREIGN KEY (producto_id) REFERENCES productos (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-    CONSTRAINT fk_dp_lote     FOREIGN KEY (lote_id)     REFERENCES lotes     (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT
+    CONSTRAINT fk_dp_producto FOREIGN KEY (producto_id) REFERENCES productos (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT
+    -- NOTA: fk_dp_lote eliminada en Semana 4 para permitir pedidos online sin asignación inmediata de lote
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -229,11 +267,13 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
 CREATE TABLE IF NOT EXISTS ventas_presenciales (
     venta_id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     vendedor_id        INT UNSIGNED NOT NULL,
-    numero_comprobante VARCHAR(20)  NOT NULL UNIQUE COMMENT 'Formato FP-{AÑO}-{SEQ}',
+    numero_comprobante VARCHAR(20)  NOT NULL UNIQUE
+        COMMENT 'Formato FP-{AÑO}-{SEQ}',
     subtotal           DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     total              DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     metodo_pago        ENUM('efectivo','tarjeta_debito','tarjeta_credito','transferencia') NOT NULL DEFAULT 'efectivo',
-    formula_medica     VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Número de fórmula para control especial',
+    formula_medica     VARCHAR(100) NOT NULL DEFAULT ''
+        COMMENT 'Número de fórmula para dispensación de control especial',
     created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ventas_vendedor FOREIGN KEY (vendedor_id) REFERENCES usuarios (usuario_id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -242,13 +282,14 @@ CREATE TABLE IF NOT EXISTS ventas_presenciales (
 -- 14. detalle_venta
 -- ============================================================
 CREATE TABLE IF NOT EXISTS detalle_venta (
-    detalle_id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    venta_id        INT UNSIGNED    NOT NULL,
-    producto_id     INT UNSIGNED    NOT NULL,
-    lote_id         INT UNSIGNED    NOT NULL COMMENT 'Trazabilidad INVIMA',
-    cantidad        INT UNSIGNED    NOT NULL,
-    precio_unitario DECIMAL(12,2)   NOT NULL,
-    subtotal        DECIMAL(12,2)   NOT NULL,
+    detalle_id      INT UNSIGNED  AUTO_INCREMENT PRIMARY KEY,
+    venta_id        INT UNSIGNED  NOT NULL,
+    producto_id     INT UNSIGNED  NOT NULL,
+    lote_id         INT UNSIGNED  NOT NULL
+        COMMENT 'Trazabilidad INVIMA — obligatorio en ventas presenciales',
+    cantidad        INT UNSIGNED  NOT NULL,
+    precio_unitario DECIMAL(12,2) NOT NULL,
+    subtotal        DECIMAL(12,2) NOT NULL,
     CONSTRAINT fk_dv_venta    FOREIGN KEY (venta_id)    REFERENCES ventas_presenciales (venta_id)    ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT fk_dv_producto FOREIGN KEY (producto_id) REFERENCES productos           (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT fk_dv_lote     FOREIGN KEY (lote_id)     REFERENCES lotes               (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT
@@ -258,12 +299,12 @@ CREATE TABLE IF NOT EXISTS detalle_venta (
 -- 15. configuracion (patrón clave-valor)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS configuracion (
-    config_id    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    clave        VARCHAR(80)  NOT NULL UNIQUE,
-    valor        VARCHAR(255) NOT NULL,
-    descripcion  VARCHAR(255) NOT NULL DEFAULT '',
-    editado_por  INT UNSIGNED NULL,
-    updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    config_id   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    clave       VARCHAR(80)  NOT NULL UNIQUE,
+    valor       VARCHAR(255) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL DEFAULT '',
+    editado_por INT UNSIGNED NULL,
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_config_usuario FOREIGN KEY (editado_por) REFERENCES usuarios (usuario_id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -284,11 +325,17 @@ CREATE TABLE IF NOT EXISTS recuperacion_contrasena (
 -- 17. logs_auditoria
 -- ============================================================
 CREATE TABLE IF NOT EXISTS logs_auditoria (
-    log_id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id  INT UNSIGNED NOT NULL,
-    accion      VARCHAR(100) NOT NULL,
-    detalle     TEXT         NOT NULL,
-    ip          VARCHAR(45)  NOT NULL DEFAULT '',
-    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    log_id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT UNSIGNED NOT NULL,
+    accion     VARCHAR(100) NOT NULL,
+    detalle    TEXT         NOT NULL,
+    ip         VARCHAR(45)  NOT NULL DEFAULT '',
+    created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_logs_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- FIN DEL SCHEMA
+-- Total: 17 tablas
+-- Versión: Semana 4 — E-commerce y Domicilios
+-- ============================================================
