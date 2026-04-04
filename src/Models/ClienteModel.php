@@ -61,4 +61,18 @@ class ClienteModel
         $stmt->execute([':id' => $dirId, ':cliente_id' => $clienteId]);
         return $stmt->rowCount();
     }
+
+    /**
+     * Alias de listarDirecciones() — compatibilidad con TiendaController.
+     * También mapea el campo `predeterminada` como `principal` para las vistas.
+     */
+    public function obtenerDirecciones(int $clienteId): array
+    {
+        $dirs = $this->listarDirecciones($clienteId);
+        return array_map(function ($d) {
+            $d['principal'] = (bool)($d['predeterminada'] ?? false);
+            return $d;
+        }, $dirs);
+    }
 }
+

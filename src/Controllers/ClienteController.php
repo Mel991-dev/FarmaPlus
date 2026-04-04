@@ -169,9 +169,34 @@ class ClienteController
     /** GET /mi-cuenta/pedidos */
     public function misPedidos(Request $request, Response $response): Response
     {
-        // TODO: Implementar en Semana 4
+        $basePath  = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+
+        $cliente = $this->clienteModel->obtenerPorUsuarioId($usuarioId);
+        if (!$cliente) {
+            return $response->withHeader('Location', $basePath . '/login')->withStatus(302);
+        }
+
+        // Filtrar por cliente_id (la tabla pedidos no tiene usuario_id directamente)
+        $db  = Database::getInstance()->getConnection();
+        $sql = "SELECT p.*
+                FROM pedidos p
+                WHERE p.cliente_id = :cliente_id
+                ORDER BY p.created_at DESC
+                LIMIT 50";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([':cliente_id' => (int)$cliente['cliente_id']]);
+        $pedidos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $titulo = 'Mis Pedidos';
+        ob_start();
+        require __DIR__ . '/../../views/clientes/mis_pedidos.php';
+        $html = ob_get_clean();
+        $response->getBody()->write($html);
         return $response;
     }
+
+
 
     /** GET /mi-cuenta/direcciones */
     public function misDirectiones(Request $request, Response $response): Response
