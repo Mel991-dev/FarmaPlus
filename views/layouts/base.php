@@ -42,7 +42,10 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
     </div>
 
     <!-- Menú de Enlaces -->
-    <nav class="flex-1 px-3 py-4 overflow-y-auto no-scrollbar flex flex-col gap-1">
+    <nav class="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <style>
+            #adminSidebar nav::-webkit-scrollbar { display: none; }
+        </style>
         
         <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mb-2 mt-2">Principal</span>
         <a href="<?= $basePath ?>/dashboard" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/dashboard') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
@@ -95,13 +98,26 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
     </nav>
 
 
-    <!-- Footer Sidebar con Cerrar Sesión -->
-    <div class="p-4 border-t border-white/10 shrink-0">
-        <form method="POST" action="<?= $basePath ?>/logout" class="m-0">
-            <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20 text-sm font-bold hover:bg-[#E74C3C] hover:text-white transition-colors">
-                <i data-lucide="log-out" class="w-[18px] h-[18px]"></i> Salir
-            </button>
-        </form>
+    <!-- Footer Sidebar con Cerrar Sesión Minimalista -->
+    <div class="px-3 py-4 border-t border-white/10 shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-full bg-fp-secondary flex items-center justify-center text-white text-[13px] font-bold shadow-md shrink-0">
+                <?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1)) ?>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-bold text-white truncate leading-tight">
+                    <?= htmlspecialchars(explode(' ', trim($_SESSION['nombres'] ?? 'Usuario'))[0] . ' ' . explode(' ', trim($_SESSION['apellidos'] ?? ''))[0]) ?>
+                </p>
+                <p class="text-[11px] text-white/60 capitalize truncate">
+                    <?= htmlspecialchars($_SESSION['rol'] ?? 'Staff') ?>
+                </p>
+            </div>
+            <form method="POST" action="<?= $basePath ?>/logout" class="m-0 shrink-0">
+                <button type="submit" class="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Cerrar sesión">
+                    <i data-lucide="log-out" class="w-[18px] h-[18px]"></i>
+                </button>
+            </form>
+        </div>
     </div>
 </aside>
 
