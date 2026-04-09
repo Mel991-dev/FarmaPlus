@@ -8,7 +8,8 @@
         "slim/psr7": "^1.0",
         "phpmailer/phpmailer": "^6.0",
         "mercadopago/dx-php": "^3.0",
-        "vlucas/phpdotenv": "^5.0"
+        "vlucas/phpdotenv": "^5.0",
+        "dompdf/dompdf": "^3.1"
     },
     "autoload": {
         "psr-4": {
