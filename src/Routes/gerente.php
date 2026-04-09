@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Slim\App;
 use App\Controllers\ReporteController;
+use App\Controllers\DashboardController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RolMiddleware;
 
@@ -13,7 +14,7 @@ return function (App $app): void {
 
     $app->group('/gerente', function ($group) {
         // Dashboard gerencial (KPIs, alertas, rendimiento)
-        $group->get('/dashboard', [\App\Controllers\DashboardController::class, 'gerente']);
+        $group->get('/dashboard', [DashboardController::class, 'gerente']);
 
         // Reportes y exportación
         $group->get('/reportes/ventas', [ReporteController::class, 'ventas']);

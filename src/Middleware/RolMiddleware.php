@@ -22,9 +22,12 @@ class RolMiddleware
 
     public function __invoke(Request $request, Handler $handler): Response
     {
-        $rolActual = $_SESSION['rol'] ?? '';
+        $rolActual = strtolower(trim($_SESSION['rol'] ?? ''));
 
-        if (!in_array($rolActual, $this->rolesPermitidos, true)) {
+        // Normalizamos los permitidos a minúscula para evitar fallos
+        $permitidosLower = array_map('strtolower', $this->rolesPermitidos);
+
+        if (!in_array($rolActual, $permitidosLower, true)) {
             $response = new SlimResponse();
             $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
             return $response
