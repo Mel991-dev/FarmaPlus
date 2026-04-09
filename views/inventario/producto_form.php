@@ -1,66 +1,18 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><?= isset($producto) ? 'Editar' : 'Nuevo' ?> Producto | FarmaPlus CRM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="<?= $basePath ?>/assets/css/app.min.css">
-</head>
-<body>
+<?php
+$titulo = isset($producto) ? 'Editar Producto' : 'Nuevo Producto';
+ob_start(); 
+?>
 
-<div class="app-shell">
-  
-  <!-- SIDEBAR -->
-  <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <button class="topbar-toggle" onclick="toggleSidebar()">
-      <i data-lucide="menu"></i>
-    </button>
-    <nav class="breadcrumb">
-      <a href="<?= $basePath ?>/dashboard" class="breadcrumb-item">
-        <i data-lucide="home" style="width:13px;height:13px;"></i> Inicio
-      </a>
-      <span class="breadcrumb-sep">/</span>
-      <a href="<?= $basePath ?>/inventario/productos" class="breadcrumb-item">Productos</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-item current"><?= isset($producto) ? 'Editar' : 'Nuevo' ?> producto</span>
-    </nav>
-    <div class="topbar-actions">
-      <button class="topbar-icon-btn">
-        <i data-lucide="bell"></i>
-      </button>
-      <button class="topbar-icon-btn">
-        <i data-lucide="help-circle"></i>
-      </button>
-      <div class="topbar-user">
-        <div class="topbar-avatar"><?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1)) ?></div>
-        <div>
-          <div class="topbar-user-name"><?= htmlspecialchars($_SESSION['nombres'] ?? '') ?> <?= htmlspecialchars($_SESSION['apellidos'] ?? '') ?></div>
-          <div class="topbar-user-role"><?= htmlspecialchars($_SESSION['rol'] ?? '') ?></div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
-    
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-header-left">
-        <h1>
-          <i data-lucide="package-plus"></i>
-          <?= isset($producto) ? 'Editar' : 'Nuevo' ?> producto
-        </h1>
-        <p>Registra un nuevo producto farmacéutico en el catálogo de la droguería.</p>
-      </div>
-    </div>
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-fp-text tracking-tight flex items-center gap-2">
+      <i data-lucide="package-plus" class="w-6 h-6"></i>
+      <?= isset($producto) ? 'Editar' : 'Nuevo' ?> producto
+    </h1>
+    <p class="text-[13px] text-fp-muted mt-0.5">Registra un nuevo producto farmacéutico en el catálogo de la droguería.</p>
+  </div>
+</div>
 
     <?php if (!empty($_GET['error'])): ?>
     <div class="error-banner">
@@ -431,12 +383,6 @@
       </div>
 
     </form>
-
-  </main>
-</div>
-
-<script src="<?= $basePath ?>/assets/js/app.js"></script>
-<script src="<?= $basePath ?>/assets/js/validaciones.js"></script>
 <script>
 if (window.lucide) lucide.createIcons();
 
@@ -535,5 +481,7 @@ if (campos.stock_minimo?.value > 0) {
 }
 </script>
 
-</body>
-</html>
+<?php 
+$contenido = ob_get_clean(); 
+require __DIR__ . '/../layouts/base.php'; 
+?>

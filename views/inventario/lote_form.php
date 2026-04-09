@@ -1,68 +1,20 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registrar Lote | FarmaPlus CRM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="<?= $basePath ?>/assets/css/app.min.css" />
-</head>
-<body>
+<?php
+$titulo = 'Registrar Lote';
+ob_start(); 
+?>
 
-<div class="app-shell">
-  
-  <!-- SIDEBAR -->
-  <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <button class="topbar-toggle" onclick="toggleSidebar()">
-      <i data-lucide="menu"></i>
-    </button>
-    <nav class="breadcrumb">
-      <a href="<?= $basePath ?>/dashboard" class="breadcrumb-item">
-        <i data-lucide="home" style="width:13px;height:13px;"></i> Inicio
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-fp-text tracking-tight flex items-center gap-2">
+      <a href="<?= $basePath ?>/inventario/lotes" class="text-fp-muted hover:text-fp-primary transition-colors">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
       </a>
-      <span class="breadcrumb-sep">/</span>
-      <a href="<?= $basePath ?>/inventario/lotes" class="breadcrumb-item">Lotes</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-item current">Registrar entrada</span>
-    </nav>
-    <div class="topbar-actions">
-      <button class="topbar-icon-btn">
-        <i data-lucide="bell"></i>
-      </button>
-      <button class="topbar-icon-btn">
-        <i data-lucide="help-circle"></i>
-      </button>
-      <div class="topbar-user">
-        <div class="topbar-avatar"><?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1)) ?></div>
-        <div>
-          <div class="topbar-user-name"><?= htmlspecialchars($_SESSION['nombres'] ?? '') ?> <?= htmlspecialchars($_SESSION['apellidos'] ?? '') ?></div>
-          <div class="topbar-user-role"><?= htmlspecialchars($_SESSION['rol'] ?? '') ?></div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
-    
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-header-left">
-        <a href="<?= $basePath ?>/inventario/lotes" class="back-btn">
-          <i data-lucide="arrow-left"></i>
-        </a>
-        <div class="page-title-block">
-          <h1>Registrar entrada de lote</h1>
-          <p>Complete los datos del nuevo lote recibido para actualizar el inventario.</p>
-        </div>
-      </div>
-    </div>
+      Registrar entrada de lote
+    </h1>
+    <p class="text-[13px] text-fp-muted mt-0.5 ml-8">Complete los datos del nuevo lote recibido para actualizar el inventario.</p>
+  </div>
+</div>
 
     <?php if (!empty($_GET['error'])): ?>
     <div class="error-banner">
@@ -218,12 +170,6 @@
         </button>
       </div>
 
-    </form>
-
-  </main>
-</div>
-
-<script src="<?= $basePath ?>/assets/js/app.js"></script>
 <script>
 if (window.lucide) lucide.createIcons();
 
@@ -351,5 +297,7 @@ document.querySelectorAll('#loteForm input, #loteForm select').forEach(campo => 
 });
 </script>
 
-</body>
-</html>
+<?php 
+$contenido = ob_get_clean(); 
+require __DIR__ . '/../layouts/base.php'; 
+?>

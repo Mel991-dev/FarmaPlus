@@ -6,62 +6,23 @@ $pageTitle = $esEdicion ? 'Editar Proveedor' : 'Nuevo Proveedor';
 $actionUrl = $esEdicion
     ? $basePath . '/inventario/proveedores/' . $proveedor['proveedor_id'] . '/editar'
     : $basePath . '/inventario/proveedores/crear';
-$iniciales = strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1));
-$nombre = htmlspecialchars($_SESSION['nombres'] ?? '');
-$rol    = htmlspecialchars($_SESSION['rol'] ?? '');
+
+$titulo = $pageTitle;
+ob_start(); 
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><?= $pageTitle ?> | FarmaPlus CRM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="<?= $basePath ?>/assets/css/app.min.css" />
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
-<div class="app-shell">
 
-  <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
-
-  <header class="topbar">
-    <nav class="breadcrumb">
-      <a href="<?= $basePath ?>/dashboard" class="breadcrumb-item"><i data-lucide="home" style="width:13px;height:13px;"></i> Inicio</a>
-      <span class="breadcrumb-sep">/</span>
-      <a href="<?= $basePath ?>/inventario/proveedores" class="breadcrumb-item">Proveedores</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-item current"><?= $esEdicion ? 'Editar' : 'Nuevo' ?></span>
-    </nav>
-    <div class="topbar-actions">
-      <button class="topbar-icon-btn"><i data-lucide="bell"></i></button>
-      <div class="topbar-user">
-        <div class="topbar-avatar"><?= $iniciales ?></div>
-        <div>
-          <div class="topbar-user-name"><?= $nombre ?></div>
-          <div class="topbar-user-role"><?= $rol ?></div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="main-content">
-
-    <?php if (!empty($_GET['error'])): ?>
-    <div class="flash error"><i data-lucide="alert-circle"></i><?= htmlspecialchars($_GET['error']) ?></div>
-    <?php endif; ?>
-
-    <div class="page-header">
-      <a href="<?= $basePath ?>/inventario/proveedores" class="back-btn"><i data-lucide="arrow-left"></i></a>
-      <div class="page-title-block">
-        <h1><i data-lucide="building-2"></i> <?= $pageTitle ?></h1>
-        <p><?= $esEdicion ? 'Modifica los datos del proveedor registrado.' : 'Añade un nuevo laboratorio o distribuidor al sistema.' ?></p>
-      </div>
-    </div>
-
-    <form method="POST" action="<?= $actionUrl ?>">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-fp-text tracking-tight flex items-center gap-2">
+      <a href="<?= $basePath ?>/inventario/proveedores" class="text-fp-muted hover:text-fp-primary transition-colors">
+        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+      </a>
+      <?= $pageTitle ?>
+    </h1>
+    <p class="text-[13px] text-fp-muted mt-0.5 ml-8"><?= $esEdicion ? 'Modifica los datos del proveedor registrado.' : 'Añade un nuevo laboratorio o distribuidor al sistema.' ?></p>
+  </div>
+</div>
 
       <div class="card">
         <div class="card-header">
@@ -134,9 +95,8 @@ $rol    = htmlspecialchars($_SESSION['rol'] ?? '');
       </div>
 
     </form>
-  </main>
-</div>
-<script src="<?= $basePath ?>/assets/js/app.js"></script>
 <script>if (window.lucide) lucide.createIcons();</script>
-</body>
-</html>
+<?php 
+$contenido = ob_get_clean(); 
+require __DIR__ . '/../layouts/base.php'; 
+?>
