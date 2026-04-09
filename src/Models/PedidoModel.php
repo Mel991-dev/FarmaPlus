@@ -210,10 +210,11 @@ class PedidoModel
      */
     public function obtenerRepartidoresDisponibles(): array
     {
-        $sql  = "SELECT usuario_id, CONCAT(nombres, ' ', apellidos) AS nombre, correo, telefono
-                 FROM usuarios
-                 WHERE rol = 'repartidor' AND activo = 1
-                 ORDER BY nombres";
+        $sql  = "SELECT u.usuario_id, CONCAT(u.nombres, ' ', u.apellidos) AS nombre, u.correo, u.telefono
+                 FROM usuarios u
+                 INNER JOIN roles r ON u.rol_id = r.rol_id
+                 WHERE r.nombre = 'repartidor' AND u.activo = 1
+                 ORDER BY u.nombres";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
