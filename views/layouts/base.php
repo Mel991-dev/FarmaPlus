@@ -157,32 +157,57 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
     <?php if (!empty($contenido)) echo $contenido; ?>
 </main>
 
-<!-- JAVASCRIPT GLOBAL -->
 <script>
     // Iniciar íconos universales
     document.addEventListener("DOMContentLoaded", function() {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        // Cerrar sidebar automáticamente al hacer clic en un link de nav (móvil)
+        const sidebar = document.getElementById('adminSidebar');
+        if (sidebar) {
+            sidebar.querySelectorAll('a[href]').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    // Solo cerrar si el sidebar está abierto (visible) en móvil
+                    if (window.innerWidth < 1024 && !sidebar.classList.contains('-translate-x-full')) {
+                        closeSidebar();
+                    }
+                });
+            });
+        }
     });
 
-    // Lógica Simple para ocultar/mostrar Sidebar en Móviles
+    // Cerrar sidebar (con animación del overlay)
+    function closeSidebar() {
+        const sidebar  = document.getElementById('adminSidebar');
+        const overlay  = document.getElementById('sidebarOverlay');
+        if (!sidebar) return;
+        sidebar.classList.add('-translate-x-full');
+        if (overlay) {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+
+    // Abrir/cerrar sidebar (toggle)
     function toggleSidebar() {
         const sidebar = document.getElementById('adminSidebar');
         const overlay = document.getElementById('sidebarOverlay');
-        
-        // Alternar el -translate-x-full
-        sidebar.classList.toggle('-translate-x-full');
-        
-        if (!sidebar.classList.contains('-translate-x-full')) {
-            // Abrir Menu
-            overlay.classList.remove('hidden');
-            // Timeout ligero para animar la opacidad del backdrop
-            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        if (!sidebar) return;
+
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+        if (isOpen) {
+            // Cerrar
+            closeSidebar();
         } else {
-            // Cerrar Menu
-            overlay.classList.add('opacity-0');
-            setTimeout(() => overlay.classList.add('hidden'), 300); // esperar transición
+            // Abrir
+            sidebar.classList.remove('-translate-x-full');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            }
         }
     }
 </script>
