@@ -1,4 +1,4 @@
-<aside class="sidebar bg-fp-primary-dark fixed top-0 left-0 h-screen flex flex-col z-50 transition-transform duration-300 w-[240px] -translate-x-full lg:translate-x-0" id="sidebarCliente" role="navigation" aria-label="Navegación principal">
+<aside class="bg-fp-primary-dark fixed top-0 left-0 h-screen flex flex-col z-50 transition-transform duration-300 w-[240px] -translate-x-full lg:translate-x-0" id="sidebarCliente" role="navigation" aria-label="Navegación principal">
   
   <!-- Logo -->
   <div class="flex items-center justify-between px-4 pt-6 pb-5 border-b border-white/10 shrink-0">
