@@ -62,21 +62,48 @@
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        // Cerrar sidebar automáticamente al hacer clic en un link de navegación (móvil)
+        const sidebar = document.getElementById('sidebarCliente');
+        if (sidebar) {
+            sidebar.querySelectorAll('a[href]').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024 && !sidebar.classList.contains('-translate-x-full')) {
+                        closeSidebarCliente();
+                    }
+                });
+            });
+        }
     });
+
+    // Cerrar sidebar cliente
+    function closeSidebarCliente() {
+        const sidebar = document.getElementById('sidebarCliente');
+        const overlay = document.getElementById('sidebarOverlayCliente');
+        if (!sidebar) return;
+        sidebar.classList.add('-translate-x-full');
+        if (overlay) {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
 
     // Toggle Sidebar Móvil Cliente
     function toggleSidebarCliente() {
         const sidebar = document.getElementById('sidebarCliente');
         const overlay = document.getElementById('sidebarOverlayCliente');
-        
-        sidebar.classList.toggle('-translate-x-full');
-        
-        if (!sidebar.classList.contains('-translate-x-full')) {
-            overlay.classList.remove('hidden');
-            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        if (!sidebar) return;
+
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+        if (isOpen) {
+            closeSidebarCliente();
         } else {
-            overlay.classList.add('opacity-0');
-            setTimeout(() => overlay.classList.add('hidden'), 300);
+            sidebar.classList.remove('-translate-x-full');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            }
         }
     }
 </script>
