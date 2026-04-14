@@ -178,7 +178,7 @@ class VentaController
         $params  = $request->getQueryParams();
         $termino = trim($params['q'] ?? '');
 
-        if (strlen($termino) < 2) {
+        if (strlen($termino) > 0 && strlen($termino) < 2) {
             $response->getBody()->write(json_encode([]));
             return $response->withHeader('Content-Type', 'application/json');
         }
