@@ -56,9 +56,10 @@ class VentaModel
 
     public function obtenerDetalle(int $ventaId): array
     {
-        $sql  = "SELECT dv.*, p.nombre AS producto_nombre
+        $sql  = "SELECT dv.*, p.nombre AS producto_nombre, p.codigo_invima, p.control_especial, l.numero_lote
                  FROM detalle_venta dv
                  INNER JOIN productos p ON dv.producto_id = p.producto_id
+                 LEFT JOIN lotes l ON dv.lote_id = l.lote_id
                  WHERE dv.venta_id = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $ventaId]);
