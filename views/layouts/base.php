@@ -5,6 +5,16 @@
  */
 $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
 $currentUri = $_SERVER['REQUEST_URI'] ?? '';
+
+// Obtener conteo de alertas activas para el badge del Sidebar
+$alertasSidebarCount = 0;
+if (class_exists('App\Database\Database') && isset($_ENV['DB_NAME'])) {
+    try {
+        $dbSidebar = \App\Database\Database::getInstance()->getConnection();
+        $stmtSidebar = $dbSidebar->query("SELECT COUNT(*) FROM alertas WHERE estado = 'activa'");
+        $alertasSidebarCount = (int) $stmtSidebar->fetchColumn();
+    } catch (\Throwable $t) {}
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -71,8 +81,13 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '';
         <a href="<?= $basePath ?>/inventario/lotes" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/lotes') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
             <i data-lucide="layers" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Lotes
         </a>
-        <a href="<?= $basePath ?>/inventario/alertas" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/alertas') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
-            <i data-lucide="alert-triangle" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Alertas
+        <a href="<?= $basePath ?>/inventario/alertas" class="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/alertas') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="alert-triangle" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Alertas
+            </div>
+            <?php if ($alertasSidebarCount > 0): ?>
+            <span class="bg-[#E74C3C]/25 text-[#FF6B6B] border border-[#E74C3C]/30 text-[11px] font-bold min-w-[20px] h-[20px] flex items-center justify-center rounded-full ml-1 truncate px-1 shadow-sm"><?= $alertasSidebarCount ?></span>
+            <?php endif; ?>
         </a>
         <a href="<?= $basePath ?>/inventario/proveedores" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/proveedores') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
             <i data-lucide="building-2" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Proveedores
