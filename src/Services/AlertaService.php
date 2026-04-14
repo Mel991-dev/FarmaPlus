@@ -66,13 +66,17 @@ class AlertaService
                     "Stock bajo: {$producto['nombre']} tiene {$producto['stock_actual']} unidades (mínimo: {$producto['stock_minimo']})"
                 );
             }
+        } else {
+            // Auto-resolver si el stock se ha reabastecido
+            $this->alertaModel->autoResolverStockMinimo($productoId);
         }
-
         // Alertas de vencimiento
         $lotesPorVencer = $this->loteModel->lotesPorVencer($this->diasAlertaVencimiento);
         foreach ($lotesPorVencer as $lote) {
             if ($lote['producto_id'] === $productoId) {
-                if (!$this->alertaModel->existeActiva($productoId, $lote['lote_id'], 'vencimiento')) {
+                // Si la alerta Vencimiento ya existió (activa O resuelta), no se recrea.
+                // Permitimos que el usuario marque 'resuelta' y esto actúe como "Silenciar" u "Omitir" por el resto de vida del lote.
+                if (!$this->alertaModel->existeCualquiera($productoId, $lote['lote_id'], 'vencimiento')) {
                     $this->alertaModel->crear(
                         $productoId,
                         $lote['lote_id'],
@@ -111,6 +115,10 @@ class AlertaService
     public function verificarTodos(): void
     {
         try {
+            // 1. Limpiar alertas de vencimiento fantasmas para lotes que ya se vendieron (stock <= 0)
+            $this->alertaModel->autoResolverLotesEnCero();
+
+            // 2. Verificar los productos
             $sql  = "SELECT producto_id FROM productos WHERE activo = 1";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
