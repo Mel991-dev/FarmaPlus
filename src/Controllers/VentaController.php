@@ -159,9 +159,41 @@ class VentaController
     /** POST /ventas/comprobante/{id}/enviar-correo */
     public function enviarComprobante(Request $request, Response $response, array $args): Response
     {
-        // TODO: Implementar en Semana 3
-        // Enviar comprobante por correo vía PHPMailer (RF-5.5)
-        return $response;
+        $ventaId = (int) $args['id'];
+        
+        $body = (array) $request->getParsedBody();
+        if (empty($body)) {
+            $body = json_decode((string)$request->getBody(), true) ?? [];
+        }
+        $email = trim($body['email'] ?? '');
+
+        if (!$ventaId || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'Correo inválido']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $venta = $this->ventaModel->obtenerConDetalle($ventaId);
+        $detalle = $this->ventaModel->obtenerDetalle($ventaId);
+
+        if (!$venta) {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'Comprobante no encontrado']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        ob_start();
+        include __DIR__ . '/../../views/ventas/comprobante_email.php';
+        $htmlComprobante = ob_get_clean();
+
+        $enviado = $this->emailService->enviarComprobantePOS($email, $venta['vendedor_nombre'] ?? 'Cliente', $htmlComprobante);
+
+        if ($enviado) {
+            $response->getBody()->write(json_encode(['success' => true]));
+        } else {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'Error al enviar servidor SMTP']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     /** GET /ventas/mis-ventas */
