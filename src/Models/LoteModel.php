@@ -52,13 +52,12 @@ class LoteModel
         return $this->db->lastInsertId();
     }
 
-    /** Descontar unidades de un lote específico */
     public function descontarUnidades(int $loteId, int $cantidad): int
     {
-        $sql  = "UPDATE lotes SET cantidad_actual = cantidad_actual - :cantidad
-                 WHERE lote_id = :lote_id AND cantidad_actual >= :cantidad";
+        $sql  = "UPDATE lotes SET cantidad_actual = cantidad_actual - :cantidad1
+                 WHERE lote_id = :lote_id AND cantidad_actual >= :cantidad2";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':cantidad' => $cantidad, ':lote_id' => $loteId]);
+        $stmt->execute([':cantidad1' => $cantidad, ':cantidad2' => $cantidad, ':lote_id' => $loteId]);
         return $stmt->rowCount();
     }
 
