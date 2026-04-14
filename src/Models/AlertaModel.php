@@ -65,4 +65,35 @@ class AlertaModel
         $stmt->execute([':p' => $productoId, ':l' => $loteId, ':t' => $tipo]);
         return (int) $stmt->fetchColumn() > 0;
     }
+
+    /** Verificar si existe CUALQUIER alerta (activa o resuelta) para que no se regenere un lote silenciado */
+    public function existeCualquiera(int $productoId, ?int $loteId, string $tipo): bool
+    {
+        $sql  = "SELECT COUNT(*) FROM alertas WHERE producto_id=:p AND lote_id<=>:l AND tipo=:t";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':p' => $productoId, ':l' => $loteId, ':t' => $tipo]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    /** Auto-resolver alertas de stock mínimo cuando el producto se abastece */
+    public function autoResolverStockMinimo(int $productoId): int
+    {
+        $sql  = "UPDATE alertas SET estado = 'resuelta', resuelta_at = NOW() 
+                 WHERE producto_id = :p AND tipo = 'stock_minimo' AND estado = 'activa'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':p' => $productoId]);
+        return $stmt->rowCount();
+    }
+
+    /** Auto-resolver alertas de vencimiento para lotes que ya se agotaron */
+    public function autoResolverLotesEnCero(): int
+    {
+        $sql = "UPDATE alertas a 
+                INNER JOIN lotes l ON a.lote_id = l.lote_id
+                SET a.estado = 'resuelta', a.resuelta_at = NOW()
+                WHERE a.tipo = 'vencimiento' AND a.estado = 'activa' AND l.cantidad_actual <= 0";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
 }
