@@ -7,3 +7,7 @@
 Thumbs.db
 PROMPT_ANTIGRAVITY.md
 .kiro
+# Imágenes subidas por usuarios (contenido dinámico — no versionar)
+# Se conserva el .gitkeep para que la carpeta exista al clonar el repo
+public/assets/uploads/productos/**
+!public/assets/uploads/productos/.gitkeep
