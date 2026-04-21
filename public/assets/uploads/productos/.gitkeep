@@ -1,0 +1,4 @@
+# Este directorio almacena las imágenes subidas de productos.
+# Estructura: {producto_id}/img_{orden}.webp
+# Máximo 4 imágenes por producto.
+# Las carpetas se crean automáticamente desde PHP al subir la primera imagen.
