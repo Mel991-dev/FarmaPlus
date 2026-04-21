@@ -120,16 +120,24 @@ CREATE TABLE IF NOT EXISTS direcciones_entrega (
 
 -- ============================================================
 -- 7. productos
+-- Actualización: soporte para productos de miscelánea (no medicamentos)
+--   · es_medicamento: 1=Medicamento, 0=Miscelánea/Consumo
+--   · principio_activo, concentracion, forma_farmaceutica, codigo_invima
+--     ahora son NULL para productos que no requieren registro farmacéutico
+--   · UNIQUE KEY uq_invima permite múltiples NULLs en MySQL (no hay conflicto)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS productos (
     producto_id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     categoria_id       INT UNSIGNED NULL,
     proveedor_id       INT UNSIGNED NULL,
+    es_medicamento     TINYINT(1)   NOT NULL DEFAULT 1
+        COMMENT '1=Medicamento (requiere INVIMA), 0=Miscelánea/Consumo',
     nombre             VARCHAR(200) NOT NULL,
-    principio_activo   VARCHAR(200) NOT NULL DEFAULT '',
-    concentracion      VARCHAR(80)  NOT NULL DEFAULT '',
-    forma_farmaceutica VARCHAR(80)  NOT NULL DEFAULT '',
-    codigo_invima      VARCHAR(50)  NOT NULL COMMENT 'Obligatorio — Decreto 677/1995',
+    principio_activo   VARCHAR(200) NULL DEFAULT NULL,
+    concentracion      VARCHAR(80)  NULL DEFAULT NULL,
+    forma_farmaceutica VARCHAR(80)  NULL DEFAULT NULL,
+    codigo_invima      VARCHAR(50)  NULL DEFAULT NULL
+        COMMENT 'Obligatorio solo para medicamentos — Decreto 677/1995',
     control_especial   TINYINT(1)   NOT NULL DEFAULT 0
         COMMENT 'Ley 2300/2023 — antibióticos/opioides/psicotrópicos',
     precio_compra      DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -335,7 +343,28 @@ CREATE TABLE IF NOT EXISTS logs_auditoria (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+-- 18. producto_imagenes
+-- Hasta 4 imágenes por producto. orden=1 → imagen principal.
+-- ON DELETE CASCADE: al borrar el producto se eliminan los
+-- registros; el archivo físico debe eliminarse desde PHP.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS producto_imagenes (
+    imagen_id      INT UNSIGNED    AUTO_INCREMENT PRIMARY KEY,
+    producto_id    INT UNSIGNED    NOT NULL,
+    nombre_archivo VARCHAR(255)    NOT NULL
+        COMMENT 'Nombre del archivo en public/assets/uploads/productos/{id}/',
+    orden          TINYINT(1)      NOT NULL DEFAULT 1
+        COMMENT '1 = imagen principal, 2-4 = imágenes adicionales',
+    created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pimg_producto  FOREIGN KEY (producto_id)
+        REFERENCES productos (producto_id)
+        ON UPDATE RESTRICT ON DELETE CASCADE,
+    CONSTRAINT uq_producto_orden UNIQUE (producto_id, orden),
+    CONSTRAINT chk_orden         CHECK (orden BETWEEN 1 AND 4)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- FIN DEL SCHEMA
--- Total: 17 tablas
--- Versión: Semana 4 — E-commerce y Domicilios
+-- Total: 18 tablas
+-- Versión: Semana 5 — Catálogo Multi-Producto + Imágenes
 -- ============================================================
