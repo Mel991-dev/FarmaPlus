@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Slim\App;
 use App\Controllers\ProductoController;
 use App\Controllers\InventarioController;
+use App\Controllers\ImagenProductoController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RolMiddleware;
 
@@ -20,12 +21,15 @@ return function (App $app): void {
     $app->group('/inventario', function ($group) {
 
         // Productos
-        $group->get('/productos',           [ProductoController::class, 'listar']);
-        $group->get('/productos/crear',     [ProductoController::class, 'mostrarCrear']);
-        $group->post('/productos/crear',    [ProductoController::class, 'crear']);
-        $group->get('/productos/{id}',      [ProductoController::class, 'detalle']);
-        $group->get('/productos/{id}/editar',  [ProductoController::class, 'mostrarEditar']);
-        $group->post('/productos/{id}/editar', [ProductoController::class, 'actualizar']);
+        $group->get('/productos',                          [ProductoController::class, 'listar']);
+        $group->get('/productos/crear',                    [ProductoController::class, 'mostrarCrear']);
+        $group->post('/productos/crear',                   [ProductoController::class, 'crear']);
+        $group->get('/productos/{id}',                     [ProductoController::class, 'detalle']);
+        $group->get('/productos/{id}/editar',              [ProductoController::class, 'mostrarEditar']);
+        $group->post('/productos/{id}/editar',             [ProductoController::class, 'actualizar']);
+        // Imágenes de producto (RF-IMG)
+        $group->post('/productos/{id}/imagenes',            [ImagenProductoController::class, 'upload']);
+        $group->delete('/productos/{id}/imagenes/{imagenId}', [ImagenProductoController::class, 'eliminar']);
 
         // Lotes — FEFO
         $group->get('/lotes',               [InventarioController::class, 'listarLotes']);
