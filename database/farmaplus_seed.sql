@@ -38,6 +38,13 @@ INSERT INTO `categorias_producto` (`nombre`, `descripcion`) VALUES
 ('Antiinflamatorio',  'Medicamentos para reducir la inflamación'),
 ('Dermatológico',     'Medicamentos de aplicación tópica para la piel'),
 ('Otro',              'Otros medicamentos y productos farmacéuticos');
+('Cuidado personal',    'Jabones, shampoo, cremas corporales, desodorantes'),
+('Higiene oral',        'Cremas dentales, enjuagues bucales, cepillos dentales, hilo dental'),
+('Cosméticos',          'Maquillaje, protectores solares, cremas faciales'),
+('Bebés y maternidad',  'Pañales, toallitas, cremas antipañalitis, leches de fórmula'),
+('Artículos de aseo',   'Rasuradores, papel higiénico, algodón, curitas y gasas'),
+('Snacks saludables',   'Barras energéticas, suplementos vitamínicos en presentación alimenticia'),
+('Dispositivos médicos','Tensiómetros, termómetros, glucómetros, oxímetros — sin INVIMA de medicamento');
 
 -- ============================================================
 -- PROVEEDORES
