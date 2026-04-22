@@ -28,7 +28,7 @@ class RepartidorController
     // Estados permitidos y sus transiciones válidas
     private const TRANSICIONES = [
         'en_preparacion' => ['en_camino'],
-        'en_camino'      => ['entregado', 'devuelto_fallido'],
+        'en_camino'      => ['entregado', 'devuelto'],
     ];
 
     public function __construct()
@@ -115,7 +115,7 @@ class RepartidorController
         }
 
         // Si es devolución, registrar observación obligatoria
-        if ($nuevoEstado === 'devuelto_fallido') {
+        if ($nuevoEstado === 'devuelto') {
             if (empty($observacion)) {
                 return $this->json($response, [
                     'success' => false,
@@ -143,7 +143,7 @@ class RepartidorController
             $etiquetas = [
                 'en_camino'       => 'En camino 🚚',
                 'entregado'       => 'Entregado ✅',
-                'devuelto_fallido' => 'No entregado ❌',
+                'devuelto'        => 'No entregado ❌',
             ];
             $this->emailService->notificarEstadoPedido(
                 $pedido['cliente_correo'],
