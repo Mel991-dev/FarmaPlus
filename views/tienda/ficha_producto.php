@@ -1,12 +1,15 @@
 <?php
 /**
  * views/tienda/ficha_producto.php — Detalle de un producto en la tienda.
- * Variables: $producto (array), $basePath (string), $totalItems (int), $enCarrito (int)
+ * Variables: $producto (array), $imagenes (array), $basePath (string), $totalItems (int), $enCarrito (int)
  */
-$basePath   = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+$basePath    = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
 $stockActual = (int)($producto['stock_actual'] ?? 0);
 $precio      = (float)($producto['precio_venta'] ?? 0);
 $hayStock    = $stockActual > 0;
+$esMed       = (($producto['es_medicamento'] ?? 1) == 1);
+$imgPrincipal = $imagenes[0] ?? null;
+$imgExtras    = array_slice($imagenes ?? [], 1);
 
 ob_start();
 ?>
@@ -25,14 +28,49 @@ ob_start();
     <!-- Producto grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
-        <!-- Imagen / Ícono -->
-        <div class="relative bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center min-h-[280px] md:min-h-[360px]">
-            <i data-lucide="pill" class="w-32 h-32 text-fp-primary/20"></i>
+        <!-- Galería de imágenes -->
+        <div class="relative bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center min-h-[280px] md:min-h-[360px] gap-3 p-4">
+
+            <!-- Imagen principal destacada -->
+            <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl" id="imgPrincipalWrap">
+                <?php if ($imgPrincipal): ?>
+                    <img id="imgDestacada"
+                         src="<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($imgPrincipal['nombre_archivo']) ?>"
+                         alt="<?= htmlspecialchars($producto['nombre']) ?>"
+                         class="max-h-[260px] md:max-h-[300px] w-full object-contain transition-all duration-300" />
+                <?php else: ?>
+                    <i data-lucide="<?= $esMed ? 'pill' : 'package' ?>" class="w-32 h-32 text-fp-primary/20"></i>
+                <?php endif; ?>
+            </div>
+
+            <!-- Miniaturas clicables (imágenes 2, 3 y 4) -->
+            <?php if (!empty($imgExtras)): ?>
+            <div class="flex items-center gap-2 mt-2">
+                <!-- Miniatura de la imagen principal también -->
+                <button type="button"
+                        onclick="cambiarImagen('<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($imgPrincipal['nombre_archivo']) ?>', this)"
+                        class="thumb-btn w-14 h-14 rounded-lg border-2 border-fp-primary overflow-hidden shrink-0 focus:outline-none">
+                    <img src="<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($imgPrincipal['nombre_archivo']) ?>"
+                         class="w-full h-full object-cover" />
+                </button>
+                <?php foreach ($imgExtras as $img): ?>
+                <button type="button"
+                        onclick="cambiarImagen('<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($img['nombre_archivo']) ?>', this)"
+                        class="thumb-btn w-14 h-14 rounded-lg border-2 border-slate-200 overflow-hidden shrink-0 hover:border-fp-primary transition-colors focus:outline-none">
+                    <img src="<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($img['nombre_archivo']) ?>"
+                         class="w-full h-full object-cover" />
+                </button>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <!-- Overlay sin stock -->
             <?php if (!$hayStock): ?>
-            <div class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+            <div class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-l-2xl">
                 <span class="bg-slate-700 text-white text-sm font-bold px-4 py-2 rounded-full">Sin stock</span>
             </div>
             <?php endif; ?>
+
             <!-- Categoría badge -->
             <?php if (!empty($producto['categoria_nombre'])): ?>
             <span class="absolute top-4 left-4 bg-white/90 text-fp-primary text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-fp-primary/10 shadow-sm">
@@ -197,6 +235,22 @@ ob_start();
 
     updateUI();
 })();
+
+// Galería: cambiar imagen destacada al hacer clic en miniatura
+function cambiarImagen(src, btn) {
+    const dest = document.getElementById('imgDestacada');
+    if (dest) {
+        dest.style.opacity = '0';
+        setTimeout(() => { dest.src = src; dest.style.opacity = '1'; }, 180);
+    }
+    // Marcar miniatura activa
+    document.querySelectorAll('.thumb-btn').forEach(b => {
+        b.classList.remove('border-fp-primary');
+        b.classList.add('border-slate-200');
+    });
+    btn.classList.remove('border-slate-200');
+    btn.classList.add('border-fp-primary');
+}
 </script>
 
 <?php
