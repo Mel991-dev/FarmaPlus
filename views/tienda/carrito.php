@@ -44,9 +44,16 @@ ob_start();
             <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4 cart-row"
                  id="row-<?= $productoId ?>">
 
-                <!-- Ícono Producto -->
-                <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                    <i data-lucide="pill" class="w-8 h-8 text-fp-primary/30"></i>
+                <!-- Imagen / Ícono Producto -->
+                <div class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                    <?php if (!empty($item['imagen'])): ?>
+                        <img src="<?= $basePath ?>/assets/uploads/productos/<?= $productoId ?>/<?= htmlspecialchars($item['imagen']) ?>"
+                             alt="<?= htmlspecialchars($item['nombre']) ?>"
+                             class="w-full h-full object-cover" />
+                    <?php else: ?>
+                        <?php $icono = (($item['es_medicamento'] ?? 1) == 1) ? 'pill' : 'package'; ?>
+                        <i data-lucide="<?= $icono ?>" class="w-8 h-8 text-fp-primary/30"></i>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Info -->
