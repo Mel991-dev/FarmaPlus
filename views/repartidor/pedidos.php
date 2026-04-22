@@ -10,7 +10,7 @@ $estadoColors = [
     'en_preparacion'   => 'bg-blue-50 text-blue-600 border-blue-200',
     'en_camino'        => 'bg-fp-warning/10 text-fp-warning border-fp-warning/20',
     'entregado'        => 'bg-fp-success/10 text-fp-success border-fp-success/20',
-    'devuelto_fallido' => 'bg-fp-error/10 text-fp-error border-fp-error/20',
+    'devuelto'         => 'bg-fp-error/10 text-fp-error border-fp-error/20',
     'pendiente'        => 'bg-slate-100 text-slate-500 border-slate-200',
 ];
 
@@ -18,7 +18,7 @@ $estadoLabels = [
     'en_preparacion'   => 'Preparando',
     'en_camino'        => 'En camino 🚚',
     'entregado'        => 'Entregado ✅',
-    'devuelto_fallido' => 'Dev. fallido',
+    'devuelto'         => 'Dev. fallido',
     'pendiente'        => 'Pendiente',
 ];
 
@@ -26,7 +26,7 @@ $transiciones = [
     'en_preparacion' => [['value' => 'en_camino', 'label' => '🚚 Salir a entregar', 'color' => 'bg-fp-warning text-white']],
     'en_camino'      => [
         ['value' => 'entregado',        'label' => '✅ Marcar como entregado', 'color' => 'bg-fp-success text-white'],
-        ['value' => 'devuelto_fallido', 'label' => '❌ No se pudo entregar',   'color' => 'bg-fp-error text-white'],
+        ['value' => 'devuelto',         'label' => '❌ No se pudo entregar',   'color' => 'bg-fp-error text-white'],
     ],
 ];
 ?>
@@ -173,7 +173,7 @@ async function actualizarEstado(pedidoId, estado) {
     pendingPedidoId = pedidoId;
     pendingEstado   = estado;
 
-    if (estado === 'devuelto_fallido') {
+    if (estado === 'devuelto') {
         document.getElementById('observacionDevolucion').value = '';
         document.getElementById('modalDevolucion').classList.remove('hidden');
         return;
@@ -192,7 +192,7 @@ async function confirmarDevolucion() {
     const obs = document.getElementById('observacionDevolucion').value.trim();
     if (!obs) { alert('Ingresa el motivo de la devolución.'); return; }
     document.getElementById('btnDevText').textContent = 'Procesando...';
-    await enviarActualizacion(pendingPedidoId, 'devuelto_fallido', obs);
+    await enviarActualizacion(pendingPedidoId, 'devuelto', obs);
     cerrarDevolucion();
 }
 
