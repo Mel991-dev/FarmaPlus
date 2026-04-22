@@ -79,9 +79,16 @@ ob_start();
          data-nombre="<?= strtolower(htmlspecialchars($p['nombre'])) ?>"
          data-categoria="<?= (int)$p['categoria_id'] ?>">
 
-        <!-- Imagen / Ícono — clickeable hacia la ficha del producto -->
+        <!-- Imagen / placeholder — clickeable hacia la ficha del producto -->
         <a href="<?= $basePath ?>/tienda/producto/<?= $p['producto_id'] ?>" class="block relative bg-gradient-to-br from-slate-50 to-slate-100 h-[160px] flex items-center justify-center overflow-hidden">
-            <i data-lucide="pill" class="w-16 h-16 text-fp-primary/20 group-hover:scale-110 group-hover:text-fp-primary/30 transition-all duration-300"></i>
+            <?php if (!empty($p['imagen_principal'])): ?>
+                <img src="<?= $basePath ?>/assets/uploads/productos/<?= $p['producto_id'] ?>/<?= htmlspecialchars($p['imagen_principal']) ?>"
+                     alt="<?= htmlspecialchars($p['nombre']) ?>"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <?php else: ?>
+                <?php $iconoPlaceholder = (($p['es_medicamento'] ?? 1) == 1) ? 'pill' : 'package'; ?>
+                <i data-lucide="<?= $iconoPlaceholder ?>" class="w-16 h-16 text-fp-primary/20 group-hover:scale-110 group-hover:text-fp-primary/30 transition-all duration-300"></i>
+            <?php endif; ?>
             <!-- Categoria badge -->
             <span class="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-wider text-fp-primary px-2 py-0.5 rounded-full border border-fp-primary/10">
                 <?= htmlspecialchars($p['categoria_nombre'] ?? '') ?>
