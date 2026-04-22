@@ -21,6 +21,7 @@ return function (App $app): void {
 
     // Panel del repartidor
     $app->group('/repartidor', function ($group) {
+        $group->get('', [RepartidorController::class, 'misPedidos']);
         $group->get('/pedidos', [RepartidorController::class, 'misPedidos']);
         $group->get('/pedidos/{id}', [RepartidorController::class, 'detallePedido']);
         $group->post('/pedidos/{id}/actualizar-estado', [RepartidorController::class, 'actualizarEstado']);
