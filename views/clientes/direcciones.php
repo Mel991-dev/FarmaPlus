@@ -52,7 +52,7 @@
                     </div>
                     <div class="flex flex-col gap-1.5 flex-1 w-1/2">
                         <label for="ciudad" class="text-sm font-semibold text-fp-text">Ciudad <span class="text-fp-error">*</span></label>
-                        <input type="text" id="ciudad" name="ciudad" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" required value="Neiva">
+                        <input type="text" id="ciudad" name="ciudad" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" required value="Florencia">
                     </div>
                 </div>
                 
