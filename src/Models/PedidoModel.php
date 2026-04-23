@@ -86,7 +86,7 @@ class PedidoModel
                  INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
                  LEFT JOIN direcciones_entrega d ON p.direccion_entrega_id = d.direccion_id
                  WHERE p.repartidor_id = :repartidor_id
-                   AND p.estado NOT IN ('entregado', 'cancelado', 'devuelto_fallido')
+                   AND p.estado NOT IN ('entregado', 'cancelado', 'devuelto')
                  ORDER BY p.created_at ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':repartidor_id' => $repartidorId]);
@@ -226,7 +226,7 @@ class PedidoModel
     public function registrarDevolucion(int $pedidoId, string $observacion): int
     {
         $sql  = "UPDATE pedidos 
-                 SET estado = 'devuelto_fallido', observacion_devolucion = :obs, updated_at = NOW()
+                 SET estado = 'devuelto', observacion_devolucion = :obs, updated_at = NOW()
                  WHERE pedido_id = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':obs' => $observacion, ':id' => $pedidoId]);
@@ -238,7 +238,11 @@ class PedidoModel
      */
     public function obtenerEmailGerente(): string|false
     {
-        $sql  = "SELECT correo FROM usuarios WHERE rol IN ('gerente','administrador') AND activo = 1 ORDER BY usuario_id LIMIT 1";
+        $sql  = "SELECT u.correo 
+                 FROM usuarios u
+                 INNER JOIN roles r ON u.rol_id = r.rol_id 
+                 WHERE r.nombre IN ('gerente','administrador') AND u.activo = 1 
+                 ORDER BY u.usuario_id LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchColumn();
