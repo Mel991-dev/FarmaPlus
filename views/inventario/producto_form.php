@@ -32,12 +32,36 @@ ob_start();
 
     <form method="POST" action="<?= isset($producto) ? $basePath . '/inventario/productos/' . $producto['producto_id'] . '/editar' : $basePath . '/inventario/productos/crear' ?>" id="productoForm">
 
-      
       <div class="form-layout">
-        
         <!-- Columna Principal -->
         <div class="form-stack">
-          
+
+          <!-- TOGGLE TIPO DE PRODUCTO -->
+          <div class="form-card">
+            <div class="form-section">
+              <div class="section-heading">
+                <div class="section-icon blue"><i data-lucide="layers"></i></div>
+                <div class="section-heading-text">
+                  <div class="section-title">Tipo de producto</div>
+                  <div class="section-subtitle">¿Es un medicamento o un producto de miscelánea/consumo?</div>
+                </div>
+              </div>
+              <div class="toggle-field" style="margin-top:12px;">
+                <div class="toggle-field-info">
+                  <div class="toggle-field-label" id="tipoLabel">
+                    <?= (($producto['es_medicamento'] ?? 1) == 1) ? '💊 Medicamento' : '🛒 Miscelánea / Consumo' ?>
+                  </div>
+                  <div class="toggle-field-desc" style="font-size:12px;color:var(--color-muted);">Activa para medicamentos — requiere INVIMA y principio activo</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" name="es_medicamento" id="esMedicamentoToggle" value="1"
+                         <?= (($producto['es_medicamento'] ?? 1) == 1) ? 'checked' : '' ?> />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <!-- SECCIÓN 1: Identificación -->
           <div class="form-card">
             <div class="form-section">
@@ -49,89 +73,64 @@ ob_start();
                   <div class="section-title">Identificación del producto</div>
                   <div class="section-subtitle">Nombre, principio activo, forma farmacéutica y código INVIMA</div>
                 </div>
-              </div>
-
-              <div class="form-stack">
-                <div class="form-grid-2">
-                  <div class="form-group">
-                    <label class="form-label">
-                      Nombre comercial <span class="req">*</span>
-                    </label>
-                    <input type="text" name="nombre" class="form-input" 
-                           value="<?= htmlspecialchars($producto['nombre'] ?? '') ?>"
-                           placeholder="Ej: Amoxicilina Mk 500mg x 10 cápsulas" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">
-                      Principio activo <span class="req">*</span>
-                    </label>
-                    <input type="text" name="principio_activo" class="form-input"
-                           value="<?= htmlspecialchars($producto['principio_activo'] ?? '') ?>"
-                           placeholder="Ej: Amoxicilina trihidrato" required />
-                  </div>
+                   <div class="form-stack">
+                <div class="form-group">
+                  <label class="form-label">Nombre comercial <span class="req">*</span></label>
+                  <input type="text" name="nombre" class="form-input"
+                         value="<?= htmlspecialchars($producto['nombre'] ?? '') ?>"
+                         placeholder="Ej: Amoxicilina 500mg / Jabón Protex / Crema Ponds" required />
                 </div>
 
-                <div class="form-grid-2">
-                  <div class="form-group">
-                    <label class="form-label">
-                      Concentración <span class="req">*</span>
-                    </label>
-                    <input type="text" name="concentracion" class="form-input"
-                           value="<?= htmlspecialchars($producto['concentracion'] ?? '') ?>"
-                           placeholder="Ej: 500mg" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">
-                      Forma farmacéutica <span class="req">*</span>
-                    </label>
-                    <select name="forma_farmaceutica" class="form-select" required>
-                      <option value="">Seleccionar...</option>
-                      <option value="Cápsulas" <?= ($producto['forma_farmaceutica'] ?? '') === 'Cápsulas' ? 'selected' : '' ?>>Cápsulas</option>
-                      <option value="Tabletas" <?= ($producto['forma_farmaceutica'] ?? '') === 'Tabletas' ? 'selected' : '' ?>>Tabletas</option>
-                      <option value="Jarabe" <?= ($producto['forma_farmaceutica'] ?? '') === 'Jarabe' ? 'selected' : '' ?>>Jarabe</option>
-                      <option value="Suspensión" <?= ($producto['forma_farmaceutica'] ?? '') === 'Suspensión' ? 'selected' : '' ?>>Suspensión</option>
-                      <option value="Inyectable" <?= ($producto['forma_farmaceutica'] ?? '') === 'Inyectable' ? 'selected' : '' ?>>Inyectable</option>
-                      <option value="Crema" <?= ($producto['forma_farmaceutica'] ?? '') === 'Crema' ? 'selected' : '' ?>>Crema</option>
-                      <option value="Gel" <?= ($producto['forma_farmaceutica'] ?? '') === 'Gel' ? 'selected' : '' ?>>Gel</option>
-                      <option value="Gotas" <?= ($producto['forma_farmaceutica'] ?? '') === 'Gotas' ? 'selected' : '' ?>>Gotas</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="form-grid-invima">
-                  <div class="form-group">
-                    <label class="form-label">
-                      Código INVIMA <span class="req">*</span>
-                    </label>
-                    <input type="text" name="codigo_invima" class="form-input mono"
-                           value="<?= htmlspecialchars($producto['codigo_invima'] ?? '') ?>"
-                           placeholder="M-XXXXAR-RX" required />
-                    <div class="form-hint">
-                      <i data-lucide="info"></i>
-                      Consulta el código en el registro sanitario del INVIMA Colombia.
+                <!-- Campos exclusivos de medicamentos -->
+                <div id="campos-farmaceuticos" style="<?= (($producto['es_medicamento'] ?? 1) == 0) ? 'display:none;' : '' ?>">
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Principio activo <span class="req med-req">*</span></label>
+                      <input type="text" name="principio_activo" class="form-input"
+                             value="<?= htmlspecialchars($producto['principio_activo'] ?? '') ?>"
+                             placeholder="Ej: Amoxicilina trihidrato" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Concentración <span class="req med-req">*</span></label>
+                      <input type="text" name="concentracion" class="form-input"
+                             value="<?= htmlspecialchars($producto['concentracion'] ?? '') ?>"
+                             placeholder="Ej: 500mg" />
                     </div>
                   </div>
-
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label">Forma farmacéutica <span class="req med-req">*</span></label>
+                      <select name="forma_farmaceutica" class="form-select">
+                        <option value="">Seleccionar...</option>
+                        <?php foreach(['Cápsulas','Tabletas','Jarabe','Suspensión','Inyectable','Crema','Gel','Gotas'] as $ff): ?>
+                        <option value="<?= $ff ?>" <?= ($producto['forma_farmaceutica'] ?? '') === $ff ? 'selected' : '' ?>><?= $ff ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Código INVIMA <span class="req med-req">*</span></label>
+                      <input type="text" name="codigo_invima" class="form-input mono"
+                             value="<?= htmlspecialchars($producto['codigo_invima'] ?? '') ?>"
+                             placeholder="M-XXXXAR-RX" />
+                      <div class="form-hint"><i data-lucide="info"></i> Consulta en registros.invima.gov.co</div>
+                    </div>
+                  </div>
                   <div class="form-group">
-                    <label class="form-label">
-                      Requiere fórmula médica
-                    </label>
+                    <label class="form-label">Requiere fórmula médica</label>
                     <div class="toggle-field">
-                      <div class="toggle-field-info">
-                        <div class="toggle-field-label">Control especial</div>
-                      </div>
+                      <div class="toggle-field-info"><div class="toggle-field-label">Control especial (Ley 2300/2023)</div></div>
                       <label class="toggle-switch">
-                        <input type="checkbox" name="control_especial" value="1" 
+                        <input type="checkbox" name="control_especial" value="1"
                                <?= ($producto['control_especial'] ?? 0) ? 'checked' : '' ?> />
                         <span class="toggle-slider"></span>
                       </label>
                     </div>
                   </div>
-                </div>
+                </div><!-- /campos-farmaceuticos -->
               </div>
             </div>
+          </div>
+        </div>      </div>
           </div>
 
           <!-- SECCIÓN 2: Clasificación -->
@@ -287,18 +286,56 @@ ob_start();
 
         <!-- Columna Lateral -->
         <div class="side-panel">
-          
+
+          <!-- IMÁGENES DEL PRODUCTO -->
+          <?php if (isset($producto)): ?>
+          <div class="side-card">
+            <div class="side-card-header"><i data-lucide="image"></i> Imágenes del producto</div>
+            <div class="side-card-body">
+              <p style="font-size:12px;color:var(--color-muted);margin-bottom:12px;">Hasta 4 imágenes · JPG/PNG/WEBP · máx. 2 MB · La primera es la imagen principal.</p>
+              <div id="imageSlots" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <?php
+                $imgMap = [];
+                foreach ($imagenes ?? [] as $img) { $imgMap[$img['orden']] = $img; }
+                for ($slot = 1; $slot <= 4; $slot++):
+                  $img = $imgMap[$slot] ?? null;
+                ?>
+                <div class="img-slot" id="slot-<?= $slot ?>" style="border:2px dashed var(--color-border);border-radius:10px;padding:8px;text-align:center;position:relative;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;">
+                  <?php if ($img): ?>
+                    <img src="<?= $basePath ?>/assets/uploads/productos/<?= $producto['producto_id'] ?>/<?= htmlspecialchars($img['nombre_archivo']) ?>"
+                         style="width:100%;max-height:70px;object-fit:cover;border-radius:6px;" />
+                    <span style="font-size:10px;color:var(--color-muted);"><?= $slot == 1 ? '⭐ Principal' : 'Imagen '.$slot ?></span>
+                    <button type="button" onclick="eliminarImagen(<?= $img['imagen_id'] ?>, <?= $slot ?>)"
+                            style="position:absolute;top:4px;right:4px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">×</button>
+                  <?php else: ?>
+                    <label style="cursor:pointer;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+                      <i data-lucide="plus-circle" style="width:22px;height:22px;color:var(--color-muted);"></i>
+                      <span style="font-size:10px;color:var(--color-muted);"><?= $slot == 1 ? 'Principal' : 'Imagen '.$slot ?></span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none;"
+                             onchange="subirImagen(this, <?= $slot ?>)" />
+                    </label>
+                  <?php endif; ?>
+                </div>
+                <?php endfor; ?>
+              </div>
+              <div id="uploadMsg" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+            </div>
+          </div>
+          <?php else: ?>
+          <div class="side-card">
+            <div class="side-card-header"><i data-lucide="image"></i> Imágenes del producto</div>
+            <div class="side-card-body">
+              <p style="font-size:12px;color:var(--color-muted);">Guarda el producto primero. Luego podrás añadir hasta 4 imágenes desde la edición.</p>
+            </div>
+          </div>
+          <?php endif; ?>
+
           <!-- Vista Previa -->
           <div class="side-card">
-            <div class="side-card-header">
-              <i data-lucide="eye"></i>
-              Vista previa
-            </div>
+            <div class="side-card-header"><i data-lucide="eye"></i> Vista previa</div>
             <div class="side-card-body">
               <div class="preview-pill-row" id="previewCard">
-                <div class="preview-pill-icon">
-                  <i data-lucide="package"></i>
-                </div>
+                <div class="preview-pill-icon"><i data-lucide="package" id="previewIcon"></i></div>
                 <div>
                   <div class="preview-name" id="previewNombre">Completa el nombre para ver la vista previa...</div>
                   <div class="preview-sub" id="previewSub"></div>
@@ -309,51 +346,22 @@ ob_start();
 
           <!-- Progreso -->
           <div class="side-card">
-            <div class="side-card-header">
-              <i data-lucide="list-checks"></i>
-              Progreso
-            </div>
+            <div class="side-card-header"><i data-lucide="list-checks"></i> Progreso</div>
             <div class="side-card-body">
-              <div class="progress-item">
-                <div class="progress-dot" id="progressId">
-                  <i data-lucide="check"></i>
-                </div>
-                <span class="progress-label" id="labelId">Identificación</span>
-              </div>
-              <div class="progress-item">
-                <div class="progress-dot" id="progressClasif">
-                  <i data-lucide="check"></i>
-                </div>
-                <span class="progress-label" id="labelClasif">Clasificación</span>
-              </div>
-              <div class="progress-item">
-                <div class="progress-dot" id="progressPrecios">
-                  <i data-lucide="check"></i>
-                </div>
-                <span class="progress-label" id="labelPrecios">Inventario y precios</span>
-              </div>
+              <div class="progress-item"><div class="progress-dot" id="progressId"><i data-lucide="check"></i></div><span class="progress-label" id="labelId">Identificación</span></div>
+              <div class="progress-item"><div class="progress-dot" id="progressClasif"><i data-lucide="check"></i></div><span class="progress-label" id="labelClasif">Clasificación</span></div>
+              <div class="progress-item"><div class="progress-dot" id="progressPrecios"><i data-lucide="check"></i></div><span class="progress-label" id="labelPrecios">Inventario y precios</span></div>
             </div>
-            <div class="required-note">
-              <span class="req">*</span> Campos marcados son obligatorios
-            </div>
+            <div class="required-note"><span class="req">*</span> Campos marcados son obligatorios</div>
           </div>
 
-          <!-- Guía Regulatoria -->
-          <div class="side-card">
-            <div class="side-card-header">
-              <i data-lucide="book-open"></i>
-              Guía regulatoria
-            </div>
+          <!-- Guía -->
+          <div class="side-card" id="guiaRegulatoria">
+            <div class="side-card-header"><i data-lucide="book-open"></i> Guía regulatoria</div>
             <div class="side-card-body">
               <div class="tip-item">
-                <div class="tip-icon" style="background:var(--color-info-soft);">
-                  <i data-lucide="shield-check" style="color:var(--color-info);"></i>
-                </div>
-                <div class="tip-text">
-                  Consulta el <strong>Registro INVIMA</strong> en 
-                  <a href="https://registros.invima.gov.co" target="_blank" style="color:var(--color-primary);text-decoration:underline;">registros.invima.gov.co</a> 
-                  para verificar el código.
-                </div>
+                <div class="tip-icon" style="background:var(--color-info-soft);"><i data-lucide="shield-check" style="color:var(--color-info);"></i></div>
+                <div class="tip-text">Consulta el <strong>Registro INVIMA</strong> en <a href="https://registros.invima.gov.co" target="_blank" style="color:var(--color-primary);text-decoration:underline;">registros.invima.gov.co</a></div>
               </div>
             </div>
           </div>
@@ -385,6 +393,68 @@ ob_start();
     </form>
 <script>
 if (window.lucide) lucide.createIcons();
+
+// ── Toggle tipo de producto ──────────────────────────────────────────────────
+const toggleMed = document.getElementById('esMedicamentoToggle');
+const camposFarma = document.getElementById('campos-farmaceuticos');
+const tipoLabel = document.getElementById('tipoLabel');
+const guiaEl = document.getElementById('guiaRegulatoria');
+
+function aplicarTipo(esMed) {
+  if (camposFarma) camposFarma.style.display = esMed ? '' : 'none';
+  if (tipoLabel) tipoLabel.textContent = esMed ? '💊 Medicamento' : '🛒 Miscelánea / Consumo';
+  if (guiaEl) guiaEl.style.display = esMed ? '' : 'none';
+  // Quitar/añadir required a campos farmacéuticos
+  camposFarma?.querySelectorAll('input,select').forEach(el => {
+    if (esMed) el.removeAttribute('data-notrequired');
+    else el.removeAttribute('required');
+  });
+}
+
+toggleMed?.addEventListener('change', () => aplicarTipo(toggleMed.checked));
+aplicarTipo(toggleMed?.checked ?? true);
+
+// ── Subida de imágenes AJAX ──────────────────────────────────────────────────
+const productoId = <?= isset($producto) ? (int)$producto['producto_id'] : 'null' ?>;
+const basePath   = '<?= $basePath ?>';
+
+async function subirImagen(input, slot) {
+  if (!input.files[0] || !productoId) return;
+  const msg = document.getElementById('uploadMsg');
+  msg.textContent = '⏳ Subiendo imagen...';
+  msg.style.color = 'var(--color-muted)';
+
+  const fd = new FormData();
+  fd.append('imagen', input.files[0]);
+
+  try {
+    const res = await fetch(`${basePath}/inventario/productos/${productoId}/imagenes`, {
+      method: 'POST', body: fd
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.textContent = '✅ Imagen guardada';
+      msg.style.color = 'var(--color-success)';
+      setTimeout(() => location.reload(), 800);
+    } else {
+      msg.textContent = '❌ ' + (data.error || 'Error al subir');
+      msg.style.color = '#ef4444';
+    }
+  } catch { msg.textContent = '❌ Fallo de conexión'; msg.style.color = '#ef4444'; }
+}
+
+async function eliminarImagen(imagenId, slot) {
+  if (!confirm('¿Eliminar esta imagen?')) return;
+  const msg = document.getElementById('uploadMsg');
+  try {
+    const res = await fetch(`${basePath}/inventario/productos/${productoId}/imagenes/${imagenId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) { msg.textContent = '🗑️ Imagen eliminada'; setTimeout(() => location.reload(), 500); }
+    else { msg.textContent = '❌ ' + (data.error || 'Error'); }
+  } catch { msg.textContent = '❌ Fallo de conexión'; }
+}
 
 // Vista previa en tiempo real
 const campos = {
