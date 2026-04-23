@@ -106,11 +106,12 @@ class ProductoController
     {
         $data     = $request->getParsedBody();
         $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+        $esMedicamento = isset($data['es_medicamento']) ? 1 : 0;
 
-        // Validar que INVIMA esté presente (RN-01)
-        if (empty($data['codigo_invima'])) {
+        // Validar que INVIMA esté presente solo para medicamentos (RN-01)
+        if ($esMedicamento && empty($data['codigo_invima'])) {
             return $response
-                ->withHeader('Location', $basePath . '/inventario/productos/crear?error=' . urlencode('El código INVIMA es obligatorio'))
+                ->withHeader('Location', $basePath . '/inventario/productos/crear?error=' . urlencode('El código INVIMA es obligatorio para medicamentos'))
                 ->withStatus(302);
         }
 
@@ -121,24 +122,23 @@ class ProductoController
             }
 
             $datos = [
-                ':nombre'            => $data['nombre'],
-                ':principio_activo'  => $data['principio_activo'] ?? null,
-                ':concentracion'     => $data['concentracion'] ?? null,
-                ':forma_farmaceutica'=> $data['forma_farmaceutica'] ?? null,
-                ':codigo_invima'     => $data['codigo_invima'],
-                ':categoria_id'      => !empty($data['categoria_id']) ? (int)$data['categoria_id'] : null,
-                ':proveedor_id'      => !empty($data['proveedor_id']) ? (int)$data['proveedor_id'] : null,
-                ':control_especial'  => isset($data['control_especial']) ? 1 : 0,
-                ':precio_compra'     => $data['precio_compra'] ?? 0,
-                ':precio_venta'      => $data['precio_venta'] ?? 0,
-                ':stock_minimo'      => $data['stock_minimo'] ?? 10,
+                ':es_medicamento'     => $esMedicamento,
+                ':nombre'             => $data['nombre'],
+                ':principio_activo'   => $esMedicamento ? ($data['principio_activo'] ?? null) : null,
+                ':concentracion'      => $esMedicamento ? ($data['concentracion'] ?? null) : null,
+                ':forma_farmaceutica' => $esMedicamento ? ($data['forma_farmaceutica'] ?? null) : null,
+                ':codigo_invima'      => $esMedicamento ? ($data['codigo_invima'] ?? null) : null,
+                ':categoria_id'       => !empty($data['categoria_id']) ? (int)$data['categoria_id'] : null,
+                ':proveedor_id'       => !empty($data['proveedor_id']) ? (int)$data['proveedor_id'] : null,
+                ':control_especial'   => ($esMedicamento && isset($data['control_especial'])) ? 1 : 0,
+                ':precio_compra'      => $data['precio_compra'] ?? 0,
+                ':precio_venta'       => $data['precio_venta'] ?? 0,
+                ':stock_minimo'       => $data['stock_minimo'] ?? 10,
             ];
 
             $productoId = (int) $this->productoModel->crear($datos);
 
             // ── Lote de apertura automático ──────────────────────────────────────
-            // Si el formulario incluye stock_inicial > 0, creamos un lote inicial
-            // con fecha de vencimiento a 10 años. El usuario podrá ajustarlo luego.
             $stockInicial = (int)($data['stock_inicial'] ?? 0);
             if ($stockInicial > 0) {
                 $loteModel  = new \App\Models\LoteModel($db);
@@ -156,7 +156,6 @@ class ProductoController
                     ':registrado_por'    => (int)($_SESSION['usuario_id'] ?? 1),
                 ]);
 
-                // Registrar movimiento para trazabilidad (no crítico)
                 try {
                     $ajusteModel->registrar(
                         productoId:  $productoId,
@@ -166,10 +165,8 @@ class ProductoController
                         cantidad:    $stockInicial,
                         observacion: 'Stock inicial al crear el producto'
                     );
-                } catch (\Throwable) {
-                    // Tabla ajustes_stock puede no existir en BD antigua — continuar
-                }
-                // Verificar si ya hay alertas de stock
+                } catch (\Throwable) {}
+
                 $this->alertaService->verificarProducto($productoId);
             }
 
@@ -220,28 +217,29 @@ class ProductoController
     public function mostrarEditar(Request $request, Response $response, array $args): Response
     {
         $productoId = (int) $args['id'];
-        $producto = $this->productoModel->obtenerPorId($productoId);
-        $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
-        
+        $producto   = $this->productoModel->obtenerPorId($productoId);
+        $basePath   = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+
         if (!$producto) {
             return $response
                 ->withHeader('Location', $basePath . '/inventario/productos?error=' . urlencode('Producto no encontrado'))
                 ->withStatus(302);
         }
-        
+
         $db = Database::getInstance()->getConnection();
-        
-        // Obtener categorías y proveedores para el formulario
+
         $categoriaModel = new \App\Models\CategoriaModel($db);
         $proveedorModel = new \App\Models\ProveedorModel($db);
+        $imagenModel    = new \App\Models\ImagenProductoModel($db);
+
         $categorias = $categoriaModel->listar();
         $proveedores = $proveedorModel->listar();
-        
-        // Renderizar vista
+        $imagenes   = $imagenModel->obtenerPorProducto($productoId);
+
         ob_start();
         include __DIR__ . '/../../views/inventario/producto_form.php';
         $contenido = ob_get_clean();
-        
+
         $response->getBody()->write($contenido);
         return $response;
     }
@@ -249,34 +247,36 @@ class ProductoController
     /** POST /inventario/productos/{id}/editar */
     public function actualizar(Request $request, Response $response, array $args): Response
     {
-        $productoId = (int) $args['id'];
-        $data = $request->getParsedBody();
-        $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
-        
-        // Validar que INVIMA esté presente (RN-01)
-        if (empty($data['codigo_invima'])) {
+        $productoId    = (int) $args['id'];
+        $data          = $request->getParsedBody();
+        $basePath      = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+        $esMedicamento = isset($data['es_medicamento']) ? 1 : 0;
+
+        // Validar INVIMA solo para medicamentos
+        if ($esMedicamento && empty($data['codigo_invima'])) {
             return $response
-                ->withHeader('Location', $basePath . '/inventario/productos/' . $productoId . '/editar?error=' . urlencode('El código INVIMA es obligatorio'))
+                ->withHeader('Location', $basePath . '/inventario/productos/' . $productoId . '/editar?error=' . urlencode('El código INVIMA es obligatorio para medicamentos'))
                 ->withStatus(302);
         }
-        
+
         try {
             $datos = [
-                ':nombre'            => $data['nombre'],
-                ':principio_activo'  => $data['principio_activo'] ?? null,
-                ':concentracion'     => $data['concentracion'] ?? null,
-                ':forma_farmaceutica'=> $data['forma_farmaceutica'] ?? null,
-                ':codigo_invima'     => $data['codigo_invima'],
-                ':categoria_id'      => $data['categoria_id'] ?? null,
-                ':proveedor_id'      => $data['proveedor_id'] ?? null,
-                ':control_especial'  => isset($data['control_especial']) ? 1 : 0,
-                ':precio_compra'     => $data['precio_compra'] ?? 0,
-                ':precio_venta'      => $data['precio_venta'] ?? 0,
-                ':stock_minimo'      => $data['stock_minimo'] ?? 10
+                ':es_medicamento'     => $esMedicamento,
+                ':nombre'             => $data['nombre'],
+                ':principio_activo'   => $esMedicamento ? ($data['principio_activo'] ?? null) : null,
+                ':concentracion'      => $esMedicamento ? ($data['concentracion'] ?? null) : null,
+                ':forma_farmaceutica' => $esMedicamento ? ($data['forma_farmaceutica'] ?? null) : null,
+                ':codigo_invima'      => $esMedicamento ? ($data['codigo_invima'] ?? null) : null,
+                ':categoria_id'       => $data['categoria_id'] ?? null,
+                ':proveedor_id'       => $data['proveedor_id'] ?? null,
+                ':control_especial'   => ($esMedicamento && isset($data['control_especial'])) ? 1 : 0,
+                ':precio_compra'      => $data['precio_compra'] ?? 0,
+                ':precio_venta'       => $data['precio_venta'] ?? 0,
+                ':stock_minimo'       => $data['stock_minimo'] ?? 10,
             ];
-            
+
             $this->productoModel->actualizar($productoId, $datos);
-            
+
             return $response
                 ->withHeader('Location', $basePath . '/inventario/productos?success=' . urlencode('Producto actualizado exitosamente'))
                 ->withStatus(302);

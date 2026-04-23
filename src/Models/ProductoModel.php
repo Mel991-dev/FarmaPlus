@@ -16,17 +16,19 @@ class ProductoModel
 {
     public function __construct(private PDO $db) {}
 
-    /** Listar productos con stock calculado desde los lotes */
+    /** Listar productos con stock calculado desde los lotes e imagen principal */
     public function listarConStock(): array
     {
         $sql = "SELECT p.*,
                        c.nombre AS categoria_nombre,
                        pr.nombre AS proveedor_nombre,
-                       COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual
+                       COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual,
+                       pi.nombre_archivo AS imagen_principal
                 FROM productos p
-                LEFT JOIN categorias_producto c ON p.categoria_id = c.categoria_id
-                LEFT JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id
-                LEFT JOIN lotes l ON p.producto_id = l.producto_id AND l.activo = 1
+                LEFT JOIN categorias_producto c  ON p.categoria_id = c.categoria_id
+                LEFT JOIN proveedores pr          ON p.proveedor_id = pr.proveedor_id
+                LEFT JOIN lotes l                 ON p.producto_id  = l.producto_id AND l.activo = 1
+                LEFT JOIN producto_imagenes pi    ON p.producto_id  = pi.producto_id AND pi.orden = 1
                 GROUP BY p.producto_id
                 ORDER BY p.nombre ASC";
         $stmt = $this->db->prepare($sql);
@@ -39,11 +41,13 @@ class ProductoModel
         $sql  = "SELECT p.*,
                         c.nombre AS categoria_nombre,
                         pr.nombre AS proveedor_nombre,
-                        COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual
+                        COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual,
+                        pi.nombre_archivo AS imagen_principal
                  FROM productos p
-                 LEFT JOIN categorias_producto c ON p.categoria_id = c.categoria_id
-                 LEFT JOIN proveedores pr ON p.proveedor_id = pr.proveedor_id
-                 LEFT JOIN lotes l ON p.producto_id = l.producto_id AND l.activo = 1
+                 LEFT JOIN categorias_producto c  ON p.categoria_id = c.categoria_id
+                 LEFT JOIN proveedores pr          ON p.proveedor_id = pr.proveedor_id
+                 LEFT JOIN lotes l                 ON p.producto_id  = l.producto_id AND l.activo = 1
+                 LEFT JOIN producto_imagenes pi    ON p.producto_id  = pi.producto_id AND pi.orden = 1
                  WHERE p.producto_id = :id
                  GROUP BY p.producto_id
                  LIMIT 1";
@@ -89,10 +93,12 @@ class ProductoModel
 
         $sql  = "SELECT p.*,
                         c.nombre AS categoria_nombre,
-                        COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual
+                        COALESCE(SUM(l.cantidad_actual), 0) AS stock_actual,
+                        pi.nombre_archivo AS imagen_principal
                  FROM productos p
-                 LEFT JOIN categorias_producto c ON p.categoria_id = c.categoria_id
-                 LEFT JOIN lotes l ON p.producto_id = l.producto_id AND l.activo = 1
+                 LEFT JOIN categorias_producto c  ON p.categoria_id = c.categoria_id
+                 LEFT JOIN lotes l                ON p.producto_id  = l.producto_id AND l.activo = 1
+                 LEFT JOIN producto_imagenes pi   ON p.producto_id  = pi.producto_id AND pi.orden = 1
                  WHERE {$whereStr}
                  GROUP BY p.producto_id
                  HAVING stock_actual > 0
@@ -118,14 +124,14 @@ class ProductoModel
 
     public function crear(array $datos): string
     {
-        // Usar parámetros posicionales para evitar problemas con named params duplicados (HY093)
         $sql  = "INSERT INTO productos
-                    (nombre, principio_activo, concentracion, forma_farmaceutica,
-                     codigo_invima, categoria_id, proveedor_id, control_especial,
-                     precio_compra, precio_venta, stock_minimo)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (es_medicamento, nombre, principio_activo, concentracion,
+                     forma_farmaceutica, codigo_invima, categoria_id, proveedor_id,
+                     control_especial, precio_compra, precio_venta, stock_minimo)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
+            $datos[':es_medicamento'],
             $datos[':nombre'],
             $datos[':principio_activo'],
             $datos[':concentracion'],
@@ -144,11 +150,13 @@ class ProductoModel
     public function actualizar(int $id, array $datos): int
     {
         $datos[':id'] = $id;
-        $sql  = "UPDATE productos SET nombre=:nombre, principio_activo=:principio_activo,
-                 concentracion=:concentracion, forma_farmaceutica=:forma_farmaceutica,
-                 codigo_invima=:codigo_invima, categoria_id=:categoria_id,
-                 proveedor_id=:proveedor_id, control_especial=:control_especial,
-                 precio_compra=:precio_compra, precio_venta=:precio_venta, stock_minimo=:stock_minimo
+        $sql  = "UPDATE productos
+                 SET es_medicamento=:es_medicamento, nombre=:nombre,
+                     principio_activo=:principio_activo, concentracion=:concentracion,
+                     forma_farmaceutica=:forma_farmaceutica, codigo_invima=:codigo_invima,
+                     categoria_id=:categoria_id, proveedor_id=:proveedor_id,
+                     control_especial=:control_especial, precio_compra=:precio_compra,
+                     precio_venta=:precio_venta, stock_minimo=:stock_minimo
                  WHERE producto_id=:id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($datos);
