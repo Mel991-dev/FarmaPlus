@@ -69,7 +69,7 @@ class TiendaController
     }
 
     /**
-     * GET /tienda/producto/{id} — Ficha individual de un producto (no implementada visualmente aún).
+     * GET /tienda/producto/{id} — Ficha individual de un producto.
      */
     public function fichaProducto(Request $request, Response $response, array $args): Response
     {
@@ -81,15 +81,18 @@ class TiendaController
                             ->withStatus(302);
         }
 
-        $titulo    = htmlspecialchars($producto['nombre']) . ' — FarmaPlus Tienda';
-        $carrito   = $_SESSION['carrito'] ?? [];
+        $db       = Database::getInstance()->getConnection();
+        $imgModel = new \App\Models\ImagenProductoModel($db);
+        $imagenes = $imgModel->obtenerPorProducto($id);
+
+        $titulo     = htmlspecialchars($producto['nombre']) . ' — FarmaPlus Tienda';
+        $carrito    = $_SESSION['carrito'] ?? [];
         $totalItems = array_sum(array_column($carrito, 'cantidad'));
         $enCarrito  = isset($carrito[$id]) ? (int)$carrito[$id]['cantidad'] : 0;
 
         ob_start();
         require __DIR__ . '/../../views/tienda/ficha_producto.php';
         $contenido = ob_get_clean();
-
 
         $response->getBody()->write($contenido);
         return $response;
@@ -101,15 +104,33 @@ class TiendaController
      */
     public function carrito(Request $request, Response $response): Response
     {
-        $carrito   = $_SESSION['carrito'] ?? [];
+        $carrito    = $_SESSION['carrito'] ?? [];
         $totalItems = array_sum(array_column($carrito, 'cantidad'));
-        $subtotal  = 0;
+        $subtotal   = 0;
 
-        foreach ($carrito as &$item) {
-            $item['subtotal'] = $item['precio_unitario'] * $item['cantidad'];
-            $subtotal += $item['subtotal'];
+        if (!empty($carrito)) {
+            // Enriquecer ítems con imagen_principal y es_medicamento desde la BD
+            $db   = Database::getInstance()->getConnection();
+            $ids  = implode(',', array_map('intval', array_keys($carrito)));
+            $stmt = $db->query(
+                "SELECT p.producto_id, p.es_medicamento,
+                        pi.nombre_archivo AS imagen_principal
+                 FROM productos p
+                 LEFT JOIN producto_imagenes pi
+                   ON pi.producto_id = p.producto_id AND pi.orden = 1
+                 WHERE p.producto_id IN ({$ids})"
+            );
+            $datos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $datosMap = array_column($datos, null, 'producto_id');
+
+            foreach ($carrito as $pid => &$item) {
+                $item['subtotal']       = $item['precio_unitario'] * $item['cantidad'];
+                $subtotal              += $item['subtotal'];
+                $item['imagen']         = $datosMap[$pid]['imagen_principal'] ?? null;
+                $item['es_medicamento'] = (int)($datosMap[$pid]['es_medicamento'] ?? 1);
+            }
+            unset($item);
         }
-        unset($item);
 
         $titulo   = 'Mi Carrito — FarmaPlus';
         ob_start();
@@ -161,7 +182,8 @@ class TiendaController
                 'nombre'          => $producto['nombre'],
                 'precio_unitario' => (float)$producto['precio_venta'],
                 'cantidad'        => $cantidad,
-                'imagen'          => $producto['imagen'] ?? null,
+                'imagen'          => $producto['imagen_principal'] ?? null,
+                'es_medicamento'  => (int)($producto['es_medicamento'] ?? 1),
             ];
         }
 
