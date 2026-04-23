@@ -128,12 +128,17 @@ ob_start();
       <i data-lucide="package" class="w-5 h-5 text-fp-primary"></i> Catálogo
       <span class="text-[12px] font-bold text-fp-muted font-mono bg-white px-2 py-0.5 rounded border border-fp-border">(<?= count($productos ?? []) ?>)</span>
     </div>
-    <button class="text-[13px] font-bold text-fp-text hover:text-fp-primary flex items-center gap-1.5 transition-colors px-3 py-1.5 border border-fp-border rounded-lg bg-white shadow-sm" onclick="toggleView()">
-      <i data-lucide="grid-3x3" class="w-4 h-4"></i> Cuadrícula
-    </button>
+    <div class="flex items-center border border-fp-border rounded-lg overflow-hidden shrink-0">
+      <button id="btnVistaTabla" onclick="setView('tabla')" class="px-3 py-1.5 bg-fp-primary text-white text-[13px] font-bold flex items-center gap-1.5 transition-colors" title="Vista de tabla">
+        <i data-lucide="list" class="w-4 h-4"></i><span class="hidden sm:inline">Tabla</span>
+      </button>
+      <button id="btnVistaGrid" onclick="setView('grid')" class="px-3 py-1.5 bg-fp-bg-main hover:bg-fp-bg-card text-fp-muted hover:text-fp-primary text-[13px] font-bold flex items-center gap-1.5 transition-colors border-l border-fp-border" title="Vista de cuadrícula">
+        <i data-lucide="layout-grid" class="w-4 h-4"></i><span class="hidden sm:inline">Cuadrícula</span>
+      </button>
+    </div>
   </div>
 
-  <div class="w-full overflow-x-auto">
+  <div class="w-full overflow-x-auto" id="tableWrapper">
     <table id="productosTable" class="w-full text-left border-collapse min-w-[900px]">
       <thead>
         <tr class="bg-white border-b border-fp-border text-[11px] uppercase tracking-[1.5px] font-bold text-fp-muted">
@@ -218,16 +223,127 @@ ob_start();
       </tbody>
     </table>
   </div>
+
+  <!-- Vista Cuadrícula (Oculta por defecto) -->
+  <div id="gridWrapper" class="hidden p-4 bg-fp-bg-main/20">
+    <?php if (empty($productos)): ?>
+      <div class="p-12 text-center text-fp-muted w-full">
+        <div class="w-16 h-16 rounded-full bg-fp-bg-main flex items-center justify-center mx-auto mb-3"><i data-lucide="package-x" class="w-8 h-8 opacity-50"></i></div>
+        <div class="font-bold text-[15px] text-fp-text">No hay productos registrados</div>
+        <div class="text-[13px]">Comienza registrando tu primer producto farmacéutico</div>
+      </div>
+    <?php else: ?>
+      <!-- Uso de Grid auto-fill para ocupar todo el espacio disponible equitativamente sin dejar huecos -->
+      <div class="grid gap-4 items-start" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));" id="gridContainer">
+        <?php foreach ($productos as $p): 
+          $stockActual = (int)($p['stock_actual'] ?? 0);
+          $stockMinimo = (int)($p['stock_minimo'] ?? 10);
+          $tieneAlerta = $stockActual <= $stockMinimo;
+          $porcentaje = $stockMinimo > 0 ? min(100, ($stockActual / $stockMinimo) * 100) : 100;
+          $estadoStock = $stockActual === 0 ? 'bg-[#E74C3C]' : ($tieneAlerta ? 'bg-[#F2C94C]' : 'bg-[#27AE60]');
+          $textStock = $stockActual === 0 ? 'text-[#E74C3C]' : ($tieneAlerta ? 'text-[#D4AC0D]' : 'text-[#27AE60]');
+          $margen = $p['precio_compra'] > 0 ? (($p['precio_venta'] - $p['precio_compra']) / $p['precio_compra']) * 100 : 0;
+          
+          // Color de categoría
+          $catLower = strtolower($p['categoria_nombre'] ?? '');
+          $catColorClass = 'bg-[#8E44AD]/10 text-[#8E44AD]'; // default
+          if (str_contains($catLower, 'antibiótico')) $catColorClass = 'bg-[#FDEDEC] text-[#C0392B]';
+          elseif (str_contains($catLower, 'analgésico')) $catColorClass = 'bg-[#EBF5FB] text-[#1A6B8A]';
+          elseif (str_contains($catLower, 'antihipertensivo')) $catColorClass = 'bg-[#F4ECF7] text-[#8E44AD]';
+          elseif (str_contains($catLower, 'antidiabético')) $catColorClass = 'bg-[#FEF9E7] text-[#D35400]';
+          elseif (str_contains($catLower, 'gastroprotector')) $catColorClass = 'bg-[#EAFAF1] text-[#1E8449]';
+          elseif (str_contains($catLower, 'antihistamínico')) $catColorClass = 'bg-[#E8F8F5] text-[#1ABC9C]';
+        ?>
+        <article class="bg-white border <?= $tieneAlerta ? 'border-fp-error/30' : 'border-fp-border' ?> rounded-2xl overflow-hidden flex flex-col hover:shadow-xl hover:border-fp-primary/50 hover:-translate-y-0.5 transition-all grid-item" data-name="<?= htmlspecialchars(strtolower($p['nombre'])) ?>">
+          
+          <!-- Header -->
+          <div class="p-4 border-b border-fp-bg-main relative flex items-start gap-3">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 <?= $tieneAlerta ? 'bg-fp-error/10 text-fp-error' : 'bg-fp-primary/10 text-fp-primary' ?>">
+              <i data-lucide="<?= $tieneAlerta ? 'alert-triangle' : 'pill' ?>" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1 min-w-0 pr-2">
+              <div class="font-bold text-[15px] text-fp-text leading-tight truncate" title="<?= htmlspecialchars($p['nombre']) ?>"><?= htmlspecialchars($p['nombre']) ?></div>
+              <div class="font-mono text-[11px] text-fp-muted mt-1 tracking-wide">INV: <?= htmlspecialchars($p['codigo_invima']) ?></div>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold <?= $catColorClass ?> truncate max-w-[120px]"><?= htmlspecialchars($p['categoria_nombre'] ?? 'S/C') ?></span>
+                <?php if (!empty($p['control_especial']) || $p['es_medicamento']): ?>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#3498DB]/10 text-[#3498DB] whitespace-nowrap"><i data-lucide="flask-conical" class="w-3 h-3"></i> F. Médica</span>
+                <?php endif; ?>
+              </div>
+            </div>
+            <span class="absolute top-4 right-4 w-2.5 h-2.5 rounded-full shadow-[0_0_0_2px] <?= $p['activo'] ? 'bg-fp-success shadow-fp-success/20' : 'bg-fp-error shadow-fp-error/20' ?>" title="<?= $p['activo'] ? 'Activo' : 'Inactivo' ?>"></span>
+          </div>
+
+          <!-- Body -->
+          <div class="p-4 flex-1 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted">Principio</span>
+              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($p['principio_activo']) ?>"><?= htmlspecialchars($p['principio_activo'] ?: '—') ?></span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted">Laboratorio</span>
+              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($p['proveedor_nombre']) ?>"><?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?></span>
+            </div>
+            <div class="flex items-end justify-between gap-2 mt-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted mb-1">Precio Venta</span>
+              <div class="text-right">
+                <div class="text-[20px] font-black leading-none text-fp-success font-mono">$<?= number_format($p['precio_venta'], 0, ',', '.') ?></div>
+                <div class="text-[11px] font-bold text-fp-success mt-1.5">+<?= number_format($margen, 0) ?>% margen</div>
+              </div>
+            </div>
+
+            <!-- Stock Section -->
+            <div class="bg-fp-bg-main rounded-xl p-3 mt-1 border border-fp-border/50">
+              <div class="flex items-baseline gap-1.5 mb-2">
+                <span class="text-[20px] font-black leading-none font-mono <?= $textStock ?>"><?= $stockActual ?></span>
+                <span class="text-[11px] font-medium text-fp-muted">uds. · mín. <?= $stockMinimo ?></span>
+              </div>
+              <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mb-2">
+                <div class="h-full <?= $estadoStock ?> transition-all duration-500" style="width: <?= $porcentaje ?>%"></div>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold <?= $stockActual === 0 ? 'bg-fp-error/10 text-fp-error' : ($tieneAlerta ? 'bg-[#F2C94C]/10 text-[#D4AC0D]' : 'bg-fp-success/10 text-fp-success') ?>">
+                <i data-lucide="<?= $tieneAlerta || $stockActual === 0 ? 'alert-triangle' : 'circle-check' ?>" class="w-3 h-3"></i>
+                <?= $stockActual === 0 ? 'Sin stock' : ($tieneAlerta ? 'Stock bajo' : 'OK') ?>
+              </span>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="p-3 border-t border-fp-bg-main flex gap-2 bg-slate-50/50">
+            <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/productos/<?= $p['producto_id'] ?>" class="flex-1 h-9 rounded-lg bg-fp-primary text-white flex items-center justify-center gap-1.5 text-[12px] font-bold hover:bg-fp-primary-dark transition-colors shadow-sm">
+              <i data-lucide="eye" class="w-4 h-4"></i> Ver
+            </a>
+            <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/productos/<?= $p['producto_id'] ?>/editar" class="flex-1 h-9 rounded-lg border border-fp-border bg-white text-fp-text flex items-center justify-center gap-1.5 text-[12px] font-bold hover:border-fp-primary hover:text-fp-primary transition-colors shadow-sm">
+              <i data-lucide="pencil" class="w-4 h-4"></i> Editar
+            </a>
+            <a href="<?= $_ENV['APP_BASEPATH'] ?? '' ?>/inventario/lotes/registrar?producto_id=<?= $p['producto_id'] ?>" class="flex-1 h-9 rounded-lg border border-fp-border bg-white text-fp-text flex items-center justify-center gap-1.5 text-[12px] font-bold hover:border-[#8E44AD] hover:text-[#8E44AD] transition-colors shadow-sm">
+              <i data-lucide="package" class="w-4 h-4"></i> Stock
+            </a>
+          </div>
+        </article>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
 </div>
 
 <script>
-// Filtros JS Modernos
+// Filtros JS Modernos (Tabla y Cuadrícula)
 document.getElementById('searchInput')?.addEventListener('input', function(e) {
   const termino = e.target.value.toLowerCase();
+  
+  // Filtrar Tabla
   const filas = document.querySelectorAll('#productosTable tbody tr');
   filas.forEach(fila => {
     const texto = fila.textContent.toLowerCase();
     fila.style.display = texto.includes(termino) ? '' : 'none';
+  });
+
+  // Filtrar Cuadrícula
+  const gridItems = document.querySelectorAll('.grid-item');
+  gridItems.forEach(item => {
+    const texto = item.textContent.toLowerCase();
+    item.style.display = texto.includes(termino) ? '' : 'none';
   });
 });
 
@@ -237,16 +353,65 @@ document.getElementById('searchInput')?.addEventListener('input', function(e) {
 
 function aplicarFiltros() {
   const soloAlertas = document.getElementById('filterSoloAlertas')?.checked;
+  
+  // Filtrar Tabla
   const filas = document.querySelectorAll('#productosTable tbody tr');
   filas.forEach(fila => {
     let mostrar = true;
     if (soloAlertas && !fila.classList.contains('row-alert')) mostrar = false;
     fila.style.display = mostrar ? '' : 'none';
   });
+
+  // Filtrar Cuadrícula
+  const gridItems = document.querySelectorAll('.grid-item');
+  gridItems.forEach(item => {
+    let mostrar = true;
+    // La tarjeta del grid tiene la clase border-fp-error/30 cuando hay alerta
+    if (soloAlertas && !item.classList.contains('border-fp-error/30')) mostrar = false;
+    item.style.display = mostrar ? '' : 'none';
+  });
 }
+
 function exportarCatalogo() { window.location.href = '/inventario/productos/exportar'; }
 function exportarAlertas() { window.location.href = '/inventario/alertas/exportar'; }
-function toggleView() { alert('Vista en cuadrícula será implementada en la próxima versión responsable.'); }
+
+// Toggle View (Tabla / Cuadrícula)
+let currentView = localStorage.getItem('fp_productos_view') || 'tabla';
+
+function setView(view) {
+  currentView = view;
+  localStorage.setItem('fp_productos_view', view);
+  
+  const tableWrap = document.getElementById('tableWrapper');
+  const gridWrap  = document.getElementById('gridWrapper');
+  const btnTabla  = document.getElementById('btnVistaTabla');
+  const btnGrid   = document.getElementById('btnVistaGrid');
+
+  if (view === 'grid') {
+    tableWrap.classList.add('hidden');
+    gridWrap.classList.remove('hidden');
+    
+    btnTabla.classList.replace('bg-fp-primary', 'bg-fp-bg-main');
+    btnTabla.classList.replace('text-white', 'text-fp-muted');
+    
+    btnGrid.classList.replace('bg-fp-bg-main', 'bg-fp-primary');
+    btnGrid.classList.replace('text-fp-muted', 'text-white');
+  } else {
+    tableWrap.classList.remove('hidden');
+    gridWrap.classList.add('hidden');
+    
+    btnGrid.classList.replace('bg-fp-primary', 'bg-fp-bg-main');
+    btnGrid.classList.replace('text-white', 'text-fp-muted');
+    
+    btnTabla.classList.replace('bg-fp-bg-main', 'bg-fp-primary');
+    btnTabla.classList.replace('text-fp-muted', 'text-white');
+  }
+}
+
+// Inicializar vista guardada
+document.addEventListener('DOMContentLoaded', () => {
+  setView(currentView);
+});
 </script>
 
 <?php 
