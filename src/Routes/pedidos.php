@@ -25,5 +25,9 @@ return function (App $app): void {
         $group->get('/pedidos', [RepartidorController::class, 'misPedidos']);
         $group->get('/pedidos/{id}', [RepartidorController::class, 'detallePedido']);
         $group->post('/pedidos/{id}/actualizar-estado', [RepartidorController::class, 'actualizarEstado']);
+        
+        // Perfil del repartidor
+        $group->get('/perfil', [RepartidorController::class, 'perfil']);
+        $group->post('/perfil/actualizar', [RepartidorController::class, 'actualizarPerfil']);
     })->add(new RolMiddleware(['repartidor', 'gerente', 'administrador']))->add($authMiddleware);
 };
