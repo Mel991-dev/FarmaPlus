@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Database\Database;
 use App\Models\PedidoModel;
 use App\Models\DetallePedidoModel;
+use App\Models\UsuarioModel;
 use App\Services\EmailService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -23,6 +24,7 @@ class RepartidorController
 {
     private PedidoModel        $pedidoModel;
     private DetallePedidoModel $detallePedidoModel;
+    private UsuarioModel       $usuarioModel;
     private EmailService       $emailService;
 
     // Estados permitidos y sus transiciones válidas
@@ -36,6 +38,7 @@ class RepartidorController
         $db = Database::getInstance()->getConnection();
         $this->pedidoModel        = new PedidoModel($db);
         $this->detallePedidoModel = new DetallePedidoModel($db);
+        $this->usuarioModel       = new UsuarioModel($db);
         $this->emailService       = new EmailService();
     }
 
@@ -158,6 +161,67 @@ class RepartidorController
             'nuevoEstado'   => $nuevoEstado,
             'mensaje'       => 'Estado actualizado correctamente.',
         ]);
+    }
+
+    /**
+     * GET /repartidor/perfil — Muestra el perfil del repartidor.
+     */
+    public function perfil(Request $request, Response $response): Response
+    {
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        $usuario = $this->usuarioModel->buscarPorId($usuarioId);
+
+        $params = $request->getQueryParams();
+        $success = $params['success'] ?? '';
+        $error   = $params['error'] ?? '';
+        $titulo  = 'Mi Perfil';
+
+        ob_start();
+        require __DIR__ . '/../../views/repartidor/perfil.php';
+        $contenido = ob_get_clean();
+
+        $response->getBody()->write($contenido);
+        return $response;
+    }
+
+    /**
+     * POST /repartidor/perfil/actualizar — Actualiza los datos del repartidor.
+     */
+    public function actualizarPerfil(Request $request, Response $response): Response
+    {
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        $data      = (array)$request->getParsedBody();
+
+        $datosUpdate = [
+            ':nombres'   => trim($data['nombres'] ?? ''),
+            ':apellidos' => trim($data['apellidos'] ?? ''),
+            ':correo'    => trim($data['correo'] ?? ''),
+            ':telefono'  => trim($data['telefono'] ?? ''),
+            ':activo'    => 1 // Mantiene activo
+        ];
+
+        // Validaciones básicas
+        if (empty($datosUpdate[':nombres']) || empty($datosUpdate[':apellidos']) || empty($datosUpdate[':correo'])) {
+            return $response->withHeader('Location', ($_ENV['APP_BASEPATH'] ?? '') . '/repartidor/perfil?error=Faltan+datos+obligatorios')
+                            ->withStatus(302);
+        }
+
+        // Verificar si el correo ya existe en otro usuario
+        $usuarioExistente = $this->usuarioModel->buscarPorCorreo($datosUpdate[':correo']);
+        if ($usuarioExistente && (int)$usuarioExistente['usuario_id'] !== $usuarioId) {
+            return $response->withHeader('Location', ($_ENV['APP_BASEPATH'] ?? '') . '/repartidor/perfil?error=El+correo+ya+está+en+uso')
+                            ->withStatus(302);
+        }
+
+        $this->usuarioModel->actualizar($usuarioId, $datosUpdate);
+
+        // Actualizar datos de sesión si es necesario
+        $_SESSION['nombres']   = $datosUpdate[':nombres'];
+        $_SESSION['apellidos'] = $datosUpdate[':apellidos'];
+        $_SESSION['correo']    = $datosUpdate[':correo'];
+
+        return $response->withHeader('Location', ($_ENV['APP_BASEPATH'] ?? '') . '/repartidor/perfil?success=Perfil+actualizado+correctamente')
+                        ->withStatus(302);
     }
 
     /** Helper: responder en JSON. */
