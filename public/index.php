@@ -44,15 +44,15 @@ $app->addBodyParsingMiddleware();
 (require __DIR__ . '/../src/Routes/tienda.php')($app);
 (require __DIR__ . '/../src/Routes/webhooks.php')($app);
 
-// ── Ruta raíz: redirigir al login (o al dashboard si ya tiene sesión) ───
+// ── Ruta raíz: redirigir al login (que gestiona internamente la redirección por rol si ya hay sesión) ───
 $app->get('/', function ($request, $response) {
     $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
-    $destino = !empty($_SESSION['usuario_id']) ? '/dashboard' : '/login';
-    return $response->withHeader('Location', $basePath . $destino)->withStatus(302);
+    return $response->withHeader('Location', $basePath . '/login')->withStatus(302);
 });
 
-// ── Dashboard principal (protegido) ────────────────────────────────────
+// ── Dashboard principal (protegido para empleados de tienda/admin) ────────
 $app->get('/dashboard', [\App\Controllers\DashboardController::class, 'index'])
+    ->add(new \App\Middleware\RolMiddleware(['administrador', 'auxiliar', 'vendedor']))
     ->add(\App\Middleware\AuthMiddleware::class);
 
 $app->run();
