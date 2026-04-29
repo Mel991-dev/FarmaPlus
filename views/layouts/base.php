@@ -6,13 +6,31 @@
 $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
 $currentUri = $_SERVER['REQUEST_URI'] ?? '';
 
-// Obtener conteo de alertas activas para el badge del Sidebar
+// Obtener conteo de alertas activas para el badge del Sidebar y estado de salud de lotes
 $alertasSidebarCount = 0;
+$estadoLotesHeader = 'verde'; // verde, amarillo, rojo
+
 if (class_exists('App\Database\Database') && isset($_ENV['DB_NAME'])) {
     try {
         $dbSidebar = \App\Database\Database::getInstance()->getConnection();
+        
+        // Conteo total para el sidebar
         $stmtSidebar = $dbSidebar->query("SELECT COUNT(*) FROM alertas WHERE estado = 'activa'");
         $alertasSidebarCount = (int) $stmtSidebar->fetchColumn();
+
+        // Determinar color de la campana basado en vencimientos de lotes activos con cantidad > 0
+        $sqlSalud = "SELECT 
+                        SUM(CASE WHEN fecha_vencimiento < CURDATE() THEN 1 ELSE 0 END) as vencidos,
+                        SUM(CASE WHEN fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as por_vencer
+                     FROM lotes 
+                     WHERE activo = 1 AND cantidad_actual > 0";
+        $salud = $dbSidebar->query($sqlSalud)->fetch(\PDO::FETCH_ASSOC);
+        
+        if (($salud['vencidos'] ?? 0) > 0) {
+            $estadoLotesHeader = 'rojo';
+        } elseif (($salud['por_vencer'] ?? 0) > 0) {
+            $estadoLotesHeader = 'amarillo';
+        }
     } catch (\Throwable $t) {}
 }
 ?>
@@ -151,7 +169,22 @@ if (class_exists('App\Database\Database') && isset($_ENV['DB_NAME'])) {
     </div>
 
     <!-- Right User Widget -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 sm:gap-5">
+        <!-- Campana de Notificaciones de Lotes -->
+        <a href="<?= $basePath ?>/inventario/alertas" class="relative p-2.5 text-fp-muted hover:text-fp-primary hover:bg-fp-bg-main rounded-xl transition-all group" title="Estado de lotes e inventario">
+            <i data-lucide="bell" class="w-[22px] h-[22px]"></i>
+            <?php 
+                // Colores específicos para que resalten
+                $dotColor = 'bg-[#27AE60]'; // Verde (OK)
+                if ($estadoLotesHeader === 'rojo') {
+                    $dotColor = 'bg-[#E74C3C]'; // Rojo (Vencido)
+                } elseif ($estadoLotesHeader === 'amarillo') {
+                    $dotColor = 'bg-[#F1C40F]'; // Amarillo/Oro (Próximo)
+                }
+            ?>
+            <span class="absolute top-2 right-2 w-3 h-3 <?= $dotColor ?> border-2 border-white rounded-full shadow-[0_0_8px_rgba(0,0,0,0.15)] z-10"></span>
+        </a>
+
         <div class="hidden sm:flex flex-col items-end mr-1">
             <span class="text-[13px] font-bold text-fp-text leading-tight">
                 <?= htmlspecialchars(($_SESSION['nombres'] ?? '') . ' ' . ($_SESSION['apellidos'] ?? '')) ?>

@@ -173,21 +173,35 @@ $fechaActualStr = date('d') . ' ' . strtolower($meses[date('n') - 1]) . '. ' . d
     </div>
   <?php else: ?>
     <?php foreach ($alertasVencimiento as $a): 
-      try {
-        $diasRestantes = (!empty($a['fecha_vencimiento']) && $a['fecha_vencimiento'] !== '0000-00-00') 
-            ? (int)(new \DateTime())->diff(new \DateTime($a['fecha_vencimiento']))->days 
-            : 0;
-      } catch (\Exception $e) {
-        $diasRestantes = 0;
+      $diasRestantes = 0;
+      $caducado = false;
+      $mensajeVencimiento = '';
+
+      if (!empty($a['fecha_vencimiento']) && $a['fecha_vencimiento'] !== '0000-00-00') {
+        $fechaVenc = new \DateTime($a['fecha_vencimiento']);
+        $hoy = new \DateTime();
+        $hoy->setTime(0, 0, 0); // Solo comparar fechas, no horas
+        
+        $intervalo = $hoy->diff($fechaVenc);
+        $diasRestantes = (int)$intervalo->format('%r%a'); // %r es el signo (- si es pasado)
+        
+        if ($diasRestantes < 0) {
+          $caducado = true;
+          $diasPasados = abs($diasRestantes);
+          $mensajeVencimiento = ($diasPasados === 1) ? "Se venció hace 1 día" : "Se venció hace {$diasPasados} días";
+        } else {
+          $caducado = false;
+          $mensajeVencimiento = ($diasRestantes === 0) ? "Vence hoy" : (($diasRestantes === 1) ? "Vence mañana" : "Vence en {$diasRestantes} días");
+        }
       }
-      $caducado = $diasRestantes <= 0;
     ?>
     <div class="bg-white rounded-xl border border-fp-border p-4 shadow-sm relative overflow-hidden group flex flex-col md:flex-row gap-4">
-      <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#E67E22]"></div>
+      <!-- Borde dinámico según estado -->
+      <div class="absolute left-0 top-0 bottom-0 w-1 <?= $caducado ? 'bg-[#E74C3C]' : 'bg-[#E67E22]' ?>"></div>
       
-      <!-- Icono Izquierdo -->
-      <div class="w-12 h-12 rounded-xl bg-[#E67E22]/10 text-[#E67E22] flex items-center justify-center shrink-0 self-start md:self-center">
-        <i data-lucide="calendar-x" class="w-6 h-6"></i>
+      <!-- Icono Izquierdo dinámico -->
+      <div class="w-12 h-12 rounded-xl <?= $caducado ? 'bg-[#FDEDEC] text-[#E74C3C]' : 'bg-[#E67E22]/10 text-[#E67E22]' ?> flex items-center justify-center shrink-0 self-start md:self-center">
+        <i data-lucide="<?= $caducado ? 'alert-circle' : 'calendar-x' ?>" class="w-6 h-6"></i>
       </div>
       
       <!-- Contenido Principal -->
@@ -208,9 +222,9 @@ $fechaActualStr = date('d') . ' ' . strtolower($meses[date('n') - 1]) . '. ' . d
 
         <div class="mt-3 flex items-center gap-2">
             <?php if ($caducado): ?>
-                <span class="bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20 text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Lote caducado</span>
+                <span class="bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20 text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> <?= $mensajeVencimiento ?></span>
             <?php else: ?>
-                <span class="bg-[#E67E22]/10 text-[#E67E22] border border-[#E67E22]/20 text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Vence en <?= $diasRestantes ?> días</span>
+                <span class="bg-[#E67E22]/10 text-[#E67E22] border border-[#E67E22]/20 text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> <?= $mensajeVencimiento ?></span>
             <?php endif; ?>
             <span class="text-[11px] text-fp-muted ml-1">Fecha oficial: <?= !empty($a['fecha_vencimiento']) && $a['fecha_vencimiento'] !== '0000-00-00' ? date('d/m/Y', strtotime($a['fecha_vencimiento'])) : 'No definida' ?></span>
         </div>
