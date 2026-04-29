@@ -16,7 +16,7 @@ class PedidoModel
     public function listar(array $filtros = []): array
     {
         $sql  = "SELECT p.*, CONCAT(u.nombres, ' ', u.apellidos) AS cliente_nombre,
-                        r.nombre AS repartidor_nombre
+                        CONCAT(r.nombres, ' ', r.apellidos) AS repartidor_nombre
                  FROM pedidos p
                  INNER JOIN clientes c ON p.cliente_id = c.cliente_id
                  INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
@@ -30,10 +30,12 @@ class PedidoModel
     public function obtenerPorId(int $id): array|false
     {
         $sql  = "SELECT p.*, CONCAT(u.nombres, ' ', u.apellidos) AS cliente_nombre,
-                        u.correo AS cliente_correo, d.direccion, d.barrio, d.ciudad, d.referencia
+                        u.correo AS cliente_correo, d.direccion, d.barrio, d.ciudad, d.referencia,
+                        CONCAT(r.nombres, ' ', r.apellidos) AS repartidor_nombre
                  FROM pedidos p
                  INNER JOIN clientes c ON p.cliente_id = c.cliente_id
                  INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
+                 LEFT JOIN usuarios r ON p.repartidor_id = r.usuario_id
                  LEFT JOIN direcciones_entrega d ON p.direccion_entrega_id = d.direccion_id
                  WHERE p.pedido_id = :id LIMIT 1";
         $stmt = $this->db->prepare($sql);
@@ -164,7 +166,7 @@ class PedidoModel
         $sql  = "SELECT p.*,
                         CONCAT(u.nombres, ' ', u.apellidos) AS cliente_nombre,
                         u.correo AS cliente_correo,
-                        r.nombres AS repartidor_nombre,
+                        CONCAT(r.nombres, ' ', r.apellidos) AS repartidor_nombre,
                         d.direccion, d.ciudad
                  FROM pedidos p
                  INNER JOIN clientes c ON p.cliente_id = c.cliente_id
