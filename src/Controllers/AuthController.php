@@ -309,7 +309,7 @@ class AuthController
             'gerente'       => '/gerente/dashboard',
             'auxiliar'      => '/inventario/productos',
             'vendedor'      => '/ventas/pos',
-            'repartidor'    => '/pedidos/repartidor',
+            'repartidor'    => '/repartidor/pedidos',
             'cliente'       => '/mi-cuenta',
         ];
 
