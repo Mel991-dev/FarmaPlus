@@ -227,7 +227,7 @@ async function enviarActualizacion(pedidoId, estado, observacion) {
 <?php
 $contenido = ob_get_clean();
 
-// Layout especial repartidor — hereda base.php
+// Layout especial repartidor
 $titulo = 'Mis Entregas';
-require __DIR__ . '/../layouts/base.php';
+require __DIR__ . '/../layouts/base_repartidor.php';
 ?>
