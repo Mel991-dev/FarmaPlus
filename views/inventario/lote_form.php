@@ -104,8 +104,7 @@ ob_start();
 
             <div class="form-field">
               <label class="form-label">
-                Cantidad recibida <span class="required">*</span>
-                <span class="hint">(unidades)</span>
+                Cantidad recibida en unidades <span class="required">*</span>
               </label>
               <input type="number" name="cantidad_inicial" class="form-input" min="1" 
                      placeholder="120" required />
