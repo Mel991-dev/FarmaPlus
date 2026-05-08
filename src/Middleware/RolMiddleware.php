@@ -30,8 +30,17 @@ class RolMiddleware
         if (!in_array($rolActual, $permitidosLower, true)) {
             $response = new SlimResponse();
             $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+            $destinos = [
+                'administrador' => '/dashboard',
+                'gerente'       => '/gerente/dashboard',
+                'auxiliar'      => '/inventario/productos',
+                'vendedor'      => '/ventas/pos',
+                'repartidor'    => '/repartidor/pedidos',
+                'cliente'       => '/mi-cuenta',
+            ];
+
             return $response
-                ->withHeader('Location', $basePath . '/dashboard')
+                ->withHeader('Location', $basePath . ($destinos[$rolActual] ?? '/login'))
                 ->withStatus(302);
         }
 
