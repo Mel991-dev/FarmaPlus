@@ -1,0 +1,221 @@
+<?php
+/**
+ * Layout principal para Gerente: sidebar + topbar + contenido.
+ * Mantiene el sistema visual existente con navegación enfocada al rol gerente.
+ */
+$basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
+$currentUri = $_SERVER['REQUEST_URI'] ?? '';
+
+$alertasSidebarCount = 0;
+$estadoLotesHeader = 'verde';
+
+if (class_exists('App\Database\Database') && isset($_ENV['DB_NAME'])) {
+    try {
+        $dbSidebar = \App\Database\Database::getInstance()->getConnection();
+
+        $stmtSidebar = $dbSidebar->query("SELECT COUNT(*) FROM alertas WHERE estado = 'activa'");
+        $alertasSidebarCount = (int) $stmtSidebar->fetchColumn();
+
+        $sqlSalud = "SELECT
+                        SUM(CASE WHEN fecha_vencimiento < CURDATE() THEN 1 ELSE 0 END) as vencidos,
+                        SUM(CASE WHEN fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as por_vencer
+                     FROM lotes
+                     WHERE activo = 1 AND cantidad_actual > 0";
+        $salud = $dbSidebar->query($sqlSalud)->fetch(\PDO::FETCH_ASSOC);
+
+        if (($salud['vencidos'] ?? 0) > 0) {
+            $estadoLotesHeader = 'rojo';
+        } elseif (($salud['por_vencer'] ?? 0) > 0) {
+            $estadoLotesHeader = 'amarillo';
+        }
+    } catch (\Throwable $t) {
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($titulo ?? 'Panel Gerencial') ?> | FarmaPlus</title>
+    <meta name="description" content="Panel gerencial FarmaPlus">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $basePath ?>/assets/css/app.min.css?v=<?= time() ?>">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+</head>
+<body class="bg-fp-bg-main relative w-full min-h-screen text-fp-text font-sans antialiased overflow-x-hidden">
+
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
+
+<aside id="gerenteSidebar" class="bg-fp-primary-dark fixed top-0 left-0 h-screen flex flex-col z-50 w-[240px] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-xl lg:shadow-none">
+    <div class="flex items-center justify-between px-4 pt-6 pb-5 border-b border-white/10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-fp-secondary rounded-lg flex items-center justify-center">
+                <i data-lucide="pill" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="text-[17px] font-bold text-white tracking-tight">Farma<span class="text-fp-secondary">Plus</span></span>
+        </div>
+        <button onclick="toggleSidebar()" class="lg:hidden text-white/70 hover:text-white p-1 rounded-md transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <style>#gerenteSidebar nav::-webkit-scrollbar { display: none; }</style>
+
+        <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mb-2 mt-2">Principal</span>
+        <a href="<?= $basePath ?>/gerente/dashboard" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/gerente/dashboard') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="layout-dashboard" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Dashboard
+        </a>
+
+        <div class="h-[1px] bg-white/5 mx-3 my-2"></div>
+        <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mb-2">Comercial</span>
+        <a href="<?= $basePath ?>/pedidos" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/pedidos') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="truck" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Pedidos
+        </a>
+        <a href="<?= $basePath ?>/gerente/devoluciones" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/gerente/devoluciones') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="rotate-ccw" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Devoluciones
+        </a>
+
+        <div class="h-[1px] bg-white/5 mx-3 my-2"></div>
+        <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mb-2">Inventario</span>
+        <a href="<?= $basePath ?>/inventario/productos" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/productos') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="package" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Productos
+        </a>
+        <a href="<?= $basePath ?>/inventario/lotes" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/lotes') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="layers" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Lotes
+        </a>
+        <a href="<?= $basePath ?>/inventario/alertas" class="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/alertas') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="alert-triangle" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Alertas
+            </div>
+            <?php if ($alertasSidebarCount > 0): ?>
+            <span class="bg-[#E74C3C]/25 text-[#FF6B6B] border border-[#E74C3C]/30 text-[11px] font-bold min-w-[20px] h-[20px] flex items-center justify-center rounded-full ml-1 truncate px-1 shadow-sm"><?= $alertasSidebarCount ?></span>
+            <?php endif; ?>
+        </a>
+        <a href="<?= $basePath ?>/inventario/proveedores" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/inventario/proveedores') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="building-2" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Proveedores
+        </a>
+
+        <div class="h-[1px] bg-white/5 mx-3 my-2"></div>
+        <span class="block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#ecf0f159] px-2 mb-2">Análisis</span>
+        <a href="<?= $basePath ?>/gerente/reportes/ventas" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/gerente/reportes/ventas') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="bar-chart-2" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Ventas
+        </a>
+        <a href="<?= $basePath ?>/gerente/reportes/inventario" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors <?= (strpos($currentUri, '/gerente/reportes/inventario') !== false) ? 'bg-fp-secondary text-white shadow-sm' : 'text-white/85 hover:bg-fp-primary hover:text-white' ?>">
+            <i data-lucide="clipboard-list" class="w-[18px] h-[18px] shrink-0 opacity-85"></i> Inventario
+        </a>
+    </nav>
+
+    <div class="px-3 py-4 border-t border-white/10 shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-full bg-fp-secondary flex items-center justify-center text-white text-[13px] font-bold shadow-md shrink-0">
+                <?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1)) ?>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-bold text-white truncate leading-tight">
+                    <?= htmlspecialchars(explode(' ', trim($_SESSION['nombres'] ?? 'Usuario'))[0] . ' ' . explode(' ', trim($_SESSION['apellidos'] ?? ''))[0]) ?>
+                </p>
+                <p class="text-[11px] text-white/60 capitalize truncate"><?= htmlspecialchars($_SESSION['rol'] ?? 'Gerente') ?></p>
+            </div>
+            <form method="POST" action="<?= $basePath ?>/logout" class="m-0 shrink-0">
+                <button type="submit" class="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Cerrar sesión">
+                    <i data-lucide="log-out" class="w-[18px] h-[18px]"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+
+<header class="fixed top-0 right-0 left-0 lg:left-[240px] h-[64px] bg-white border-b border-fp-border z-30 flex items-center justify-between px-4 sm:px-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] transition-all duration-300">
+    <div class="flex items-center gap-3 md:gap-4">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 -ml-2 text-fp-text hover:bg-fp-bg-main rounded-md transition-colors">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <h2 class="font-bold text-fp-text text-[15px] sm:text-lg tracking-tight truncate max-w-[150px] sm:max-w-none">
+            <?= htmlspecialchars($titulo ?? 'Panel Gerencial') ?>
+        </h2>
+    </div>
+
+    <div class="flex items-center gap-3 sm:gap-5">
+        <a href="<?= $basePath ?>/inventario/alertas" class="relative p-2.5 text-fp-muted hover:text-fp-primary hover:bg-fp-bg-main rounded-xl transition-all group" title="Estado de lotes e inventario">
+            <i data-lucide="bell" class="w-[22px] h-[22px]"></i>
+            <?php
+                $dotColor = 'bg-[#27AE60]';
+                if ($estadoLotesHeader === 'rojo') {
+                    $dotColor = 'bg-[#E74C3C]';
+                } elseif ($estadoLotesHeader === 'amarillo') {
+                    $dotColor = 'bg-[#F1C40F]';
+                }
+            ?>
+            <span class="absolute top-2 right-2 w-3 h-3 <?= $dotColor ?> border-2 border-white rounded-full shadow-[0_0_8px_rgba(0,0,0,0.15)] z-10"></span>
+        </a>
+
+        <div class="hidden sm:flex flex-col items-end mr-1">
+            <span class="text-[13px] font-bold text-fp-text leading-tight">
+                <?= htmlspecialchars(($_SESSION['nombres'] ?? '') . ' ' . ($_SESSION['apellidos'] ?? '')) ?>
+            </span>
+            <span class="text-[10px] text-fp-primary font-bold mt-0.5 uppercase tracking-wider bg-fp-primary/10 px-1.5 py-0.5 rounded">
+                <?= htmlspecialchars($_SESSION['rol'] ?? 'Gerente') ?>
+            </span>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-fp-secondary flex items-center justify-center text-white text-[13px] font-bold shadow-sm shrink-0">
+            <?= strtoupper(substr($_SESSION['nombres'] ?? 'U', 0, 1) . substr($_SESSION['apellidos'] ?? 'S', 0, 1)) ?>
+        </div>
+    </div>
+</header>
+
+<main class="ml-0 lg:ml-[240px] mt-[64px] p-4 sm:p-6 lg:p-8 h-[calc(100vh-64px)] w-full lg:w-[calc(100%-240px)] overflow-y-auto transition-all duration-300 bg-[#f8fafc]">
+    <?php if (!empty($contenido)) echo $contenido; ?>
+</main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        const sidebar = document.getElementById('gerenteSidebar');
+        if (sidebar) {
+            sidebar.querySelectorAll('a[href]').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024 && !sidebar.classList.contains('-translate-x-full')) {
+                        closeSidebar();
+                    }
+                });
+            });
+        }
+    });
+
+    function closeSidebar() {
+        const sidebar = document.getElementById('gerenteSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (!sidebar) return;
+        sidebar.classList.add('-translate-x-full');
+        if (overlay) {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('gerenteSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (!sidebar) return;
+
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+        if (isOpen) {
+            closeSidebar();
+        } else {
+            sidebar.classList.remove('-translate-x-full');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
