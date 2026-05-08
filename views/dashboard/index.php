@@ -207,7 +207,22 @@ ob_start();
                 <?php if ($alerta['tipo'] === 'stock_minimo'): ?>
                   <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#F2C94C]/10 text-[#D4AC0D]"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Stock mínimo</span>
                 <?php else: ?>
-                  <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#E74C3C]/10 text-[#E74C3C]"><i data-lucide="clock" class="w-3 h-3"></i> Vence pronto</span>
+                  <?php
+                    // Calcular si ya venció o está próximo
+                    $_diasDash = 999;
+                    $_vencidoDash = false;
+                    if (!empty($alerta['fecha_vencimiento']) && $alerta['fecha_vencimiento'] !== '0000-00-00') {
+                        $_fvDash  = new \DateTime($alerta['fecha_vencimiento']);
+                        $_hoyDash = new \DateTime(); $_hoyDash->setTime(0,0,0);
+                        $_diasDash = (int) $_hoyDash->diff($_fvDash)->format('%r%a');
+                        $_vencidoDash = $_diasDash < 0;
+                    }
+                  ?>
+                  <?php if ($_vencidoDash): ?>
+                    <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#E74C3C]/10 text-[#E74C3C]"><i data-lucide="alert-circle" class="w-3 h-3"></i> Vencido</span>
+                  <?php else: ?>
+                    <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#E67E22]/10 text-[#E67E22]"><i data-lucide="clock" class="w-3 h-3"></i> Vence pronto</span>
+                  <?php endif; ?>
                 <?php endif; ?>
               </div>
               <div class="text-[12px] text-fp-muted mb-1"><?= htmlspecialchars($alerta['mensaje'] ?? '') ?></div>
