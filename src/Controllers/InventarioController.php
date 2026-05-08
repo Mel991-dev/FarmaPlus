@@ -198,9 +198,29 @@ class InventarioController
         $basePath = rtrim($_ENV['APP_BASEPATH'] ?? '', '/');
 
         try {
+            $db = Database::getInstance()->getConnection();
+
+            // 1. Obtener datos de la alerta antes de resolverla
+            $stmtAlerta = $db->prepare('SELECT tipo, lote_id FROM alertas WHERE alerta_id = :id LIMIT 1');
+            $stmtAlerta->execute([':id' => $alertaId]);
+            $alerta = $stmtAlerta->fetch(\PDO::FETCH_ASSOC);
+
+            // 2. Marcar la alerta como resuelta
             $this->alertaModel->resolver($alertaId);
+
+            // 3. Si es alerta de vencimiento y tiene lote asociado → inhabilitar el lote.
+            //    stock_actual NO existe como columna en productos; se calcula dinámicamente
+            //    desde lotes, así que poner activo=0 y cantidad_actual=0 es suficiente para
+            //    que el lote desaparezca de FEFO, ventas y tienda.
+            if ($alerta && $alerta['tipo'] === 'vencimiento' && !empty($alerta['lote_id'])) {
+                $stmtLote = $db->prepare(
+                    'UPDATE lotes SET activo = 0, cantidad_actual = 0 WHERE lote_id = :lote_id'
+                );
+                $stmtLote->execute([':lote_id' => (int) $alerta['lote_id']]);
+            }
+
             return $response
-                ->withHeader('Location', $basePath . '/inventario/alertas?success=' . urlencode('Alerta marcada como resuelta'))
+                ->withHeader('Location', $basePath . '/inventario/alertas?success=' . urlencode('Alerta resuelta. El lote vencido fue inhabilitado del inventario.'))
                 ->withStatus(302);
         } catch (\Exception $e) {
             return $response
