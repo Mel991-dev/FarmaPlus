@@ -40,11 +40,17 @@ return function (App $app): void {
         ->add(new AuthMiddleware());
     $app->get('/mi-cuenta/pedidos', [ClienteController::class, 'misPedidos'])
         ->add(new AuthMiddleware());
+    $app->post('/mi-cuenta/pedidos/{id}/devoluciones', [ClienteController::class, 'solicitarDevolucionPedido'])
+        ->add(new AuthMiddleware());
 
     // Gestión de direcciones (cliente autenticado)
     $app->get('/mi-cuenta/direcciones', [ClienteController::class, 'misDirectiones'])
         ->add(new AuthMiddleware());
     $app->post('/mi-cuenta/direcciones/crear', [ClienteController::class, 'crearDireccion'])
+        ->add(new AuthMiddleware());
+    $app->get('/mi-cuenta/direcciones/{id}/editar', [ClienteController::class, 'editarDireccion'])
+        ->add(new AuthMiddleware());
+    $app->post('/mi-cuenta/direcciones/{id}/actualizar', [ClienteController::class, 'actualizarDireccion'])
         ->add(new AuthMiddleware());
     $app->post('/mi-cuenta/direcciones/{id}/eliminar', [ClienteController::class, 'eliminarDireccion'])
         ->add(new AuthMiddleware());
