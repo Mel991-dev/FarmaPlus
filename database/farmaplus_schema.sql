@@ -364,6 +364,47 @@ CREATE TABLE IF NOT EXISTS producto_imagenes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+-- 19. devoluciones
+-- ============================================================
+CREATE TABLE IF NOT EXISTS devoluciones (
+    devolucion_id   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    -- Origen: puede venir de un pedido online o una venta presencial
+    tipo_origen     ENUM('pedido','venta') NOT NULL DEFAULT 'pedido',
+    pedido_id       INT UNSIGNED NULL,      -- FK a pedidos (si tipo_origen = 'pedido')
+    venta_id        INT UNSIGNED NULL,      -- FK a ventas_presenciales (si tipo_origen = 'venta')
+
+    -- Producto devuelto
+    producto_id     INT UNSIGNED NOT NULL,
+    cantidad        INT NOT NULL DEFAULT 1,
+
+    -- Clasificación del motivo
+    motivo          ENUM(
+                        'producto_danado',
+                        'error_envio',
+                        'cambio_opinion',
+                        'vencido',
+                        'otro'
+                    ) NOT NULL DEFAULT 'otro',
+    observacion     TEXT NULL,              -- descripción adicional del solicitante
+
+    -- Ciclo de vida: pendiente → aprobada / rechazada
+    estado          ENUM('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+    razon_rechazo   TEXT NULL,              -- completado por el gerente al rechazar
+
+    -- Auditoría
+    gestionado_por  INT UNSIGNED NULL,      -- usuario_id del gerente que resolvió
+    created_at      DATETIME DEFAULT NOW(),
+    updated_at      DATETIME DEFAULT NOW() ON UPDATE NOW(),
+
+    -- Restricciones de integridad
+    CONSTRAINT fk_dev_pedido    FOREIGN KEY (pedido_id)      REFERENCES pedidos(pedido_id)                ON DELETE SET NULL,
+    CONSTRAINT fk_dev_venta     FOREIGN KEY (venta_id)       REFERENCES ventas_presenciales(venta_id)     ON DELETE SET NULL,
+    CONSTRAINT fk_dev_producto  FOREIGN KEY (producto_id)    REFERENCES productos(producto_id),
+    CONSTRAINT fk_dev_gerente   FOREIGN KEY (gestionado_por) REFERENCES usuarios(usuario_id)              ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- FIN DEL SCHEMA
 -- Total: 18 tablas
 -- Versión: Semana 5 — Catálogo Multi-Producto + Imágenes
