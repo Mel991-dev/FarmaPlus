@@ -101,21 +101,17 @@ class ProductoModel
                  LEFT JOIN producto_imagenes pi   ON p.producto_id  = pi.producto_id AND pi.orden = 1
                  WHERE {$whereStr}
                  GROUP BY p.producto_id
-                 HAVING stock_actual > 0
                  ORDER BY p.nombre ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Listar todas las categorías activas con productos disponibles para la tienda. */
     public function listarCategorias(): array
     {
-        $sql  = "SELECT DISTINCT c.categoria_id, c.nombre
-                 FROM categorias_producto c
-                 INNER JOIN productos p ON p.categoria_id = c.categoria_id
-                 WHERE p.control_especial = 0 AND p.activo = 1
-                 ORDER BY c.nombre";
+        $sql  = "SELECT categoria_id, nombre
+                 FROM categorias_producto
+                 ORDER BY nombre";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
