@@ -177,12 +177,18 @@ ob_start();
                 <i data-lucide="<?= $tieneAlerta ? 'alert-triangle' : 'pill' ?>" class="w-4 h-4"></i>
               </div>
               <div class="min-w-0">
-                <div class="font-bold text-[13px] text-fp-text truncate" title="<?= htmlspecialchars($p['nombre']) ?>"><?= htmlspecialchars($p['nombre']) ?></div>
-                <div class="text-[11px] text-fp-muted font-mono mt-0.5">INV: <?= htmlspecialchars($p['codigo_invima']) ?></div>
+                <div class="font-bold text-[13px] text-fp-text truncate" title="<?= htmlspecialchars($p['nombre'] ?? '') ?>"><?= htmlspecialchars($p['nombre'] ?? '') ?></div>
+                <div class="text-[11px] text-fp-muted font-mono mt-0.5">
+                  <?= !empty($p['codigo_invima']) ? 'INV: ' . htmlspecialchars($p['codigo_invima']) : (($p['es_medicamento'] ?? 1) == 0 ? 'Sin INVIMA (Venta Libre)' : 'INV: Pendiente') ?>
+                </div>
               </div>
             </div>
           </td>
-          <td class="px-5 py-3 truncate max-w-[150px]" title="<?= htmlspecialchars($p['principio_activo'] ?: '—') ?>"><?= htmlspecialchars($p['principio_activo'] ?: '—') ?></td>
+          <?php
+            $esMedicamento = ($p['es_medicamento'] ?? 1) == 1;
+            $pActivoText = !empty($p['principio_activo']) ? $p['principio_activo'] : ($esMedicamento ? '—' : 'No aplica');
+          ?>
+          <td class="px-5 py-3 truncate max-w-[150px]" title="<?= htmlspecialchars($pActivoText) ?>"><?= htmlspecialchars($pActivoText) ?></td>
           <td class="px-5 py-3">
             <span class="inline-block px-2 py-0.5 border border-fp-border rounded bg-fp-bg-main text-[11px] font-semibold truncate max-w-[120px]" title="<?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?>"><?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?></span>
           </td>
@@ -262,8 +268,10 @@ ob_start();
               <i data-lucide="<?= $tieneAlerta ? 'alert-triangle' : 'pill' ?>" class="w-5 h-5"></i>
             </div>
             <div class="flex-1 min-w-0 pr-2">
-              <div class="font-bold text-[15px] text-fp-text leading-tight truncate" title="<?= htmlspecialchars($p['nombre']) ?>"><?= htmlspecialchars($p['nombre']) ?></div>
-              <div class="font-mono text-[11px] text-fp-muted mt-1 tracking-wide">INV: <?= htmlspecialchars($p['codigo_invima']) ?></div>
+              <div class="font-bold text-[15px] text-fp-text leading-tight truncate" title="<?= htmlspecialchars($p['nombre'] ?? '') ?>"><?= htmlspecialchars($p['nombre'] ?? '') ?></div>
+              <div class="font-mono text-[11px] text-fp-muted mt-1 tracking-wide">
+                  <?= !empty($p['codigo_invima']) ? 'INV: ' . htmlspecialchars($p['codigo_invima']) : (($p['es_medicamento'] ?? 1) == 0 ? 'Sin INVIMA (Venta Libre)' : 'INV: Pendiente') ?>
+              </div>
               <div class="flex flex-wrap gap-1.5 mt-2">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold <?= $catColorClass ?> truncate max-w-[120px]"><?= htmlspecialchars($p['categoria_nombre'] ?? 'S/C') ?></span>
                 <?php if (!empty($p['control_especial']) || $p['es_medicamento']): ?>
@@ -278,11 +286,15 @@ ob_start();
           <div class="p-4 flex-1 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-2">
               <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted">Principio</span>
-              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($p['principio_activo']) ?>"><?= htmlspecialchars($p['principio_activo'] ?: '—') ?></span>
+              <?php
+                $esMedicamentoGrid = ($p['es_medicamento'] ?? 1) == 1;
+                $pActivoGridText = !empty($p['principio_activo']) ? $p['principio_activo'] : ($esMedicamentoGrid ? '—' : 'No aplica');
+              ?>
+              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($pActivoGridText) ?>"><?= htmlspecialchars($pActivoGridText) ?></span>
             </div>
             <div class="flex items-center justify-between gap-2">
               <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted">Laboratorio</span>
-              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($p['proveedor_nombre']) ?>"><?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?></span>
+              <span class="text-[13px] font-semibold text-fp-text text-right truncate" title="<?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?>"><?= htmlspecialchars($p['proveedor_nombre'] ?? 'General') ?></span>
             </div>
             <div class="flex items-end justify-between gap-2 mt-1">
               <span class="text-[11px] font-bold uppercase tracking-wider text-fp-muted mb-1">Precio Venta</span>

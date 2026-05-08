@@ -14,6 +14,20 @@ $estadoConfig = [
     'cancelado'        => ['label' => 'Cancelado',        'cls' => 'bg-slate-100 text-slate-400 border-slate-200',   'icon' => 'x-circle'],
 ];
 
+$motivoLabel = [
+    'producto_danado' => 'Producto dañado',
+    'error_envio'     => 'Error de envío',
+    'cambio_opinion'  => 'Cambio de opinión',
+    'vencido'         => 'Producto vencido',
+    'otro'            => 'Otro',
+];
+
+$estadoDevolucionConfig = [
+    'pendiente' => ['cls' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'Pendiente'],
+    'aprobada'  => ['cls' => 'bg-green-50 text-green-700 border-green-200', 'label' => 'Aprobada'],
+    'rechazada' => ['cls' => 'bg-red-50 text-red-700 border-red-200', 'label' => 'Rechazada'],
+];
+
 ob_start();
 ?>
 
@@ -31,6 +45,20 @@ ob_start();
             <i data-lucide="store" class="w-4 h-4"></i> Ir a la tienda
         </a>
     </div>
+
+    <?php if (!empty($success)): ?>
+    <div class="mb-5 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-[13px] font-semibold">
+        <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i>
+        <?= htmlspecialchars($success) ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($error)): ?>
+    <div class="mb-5 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-[13px] font-semibold">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+        <?= htmlspecialchars($error) ?>
+    </div>
+    <?php endif; ?>
 
     <?php if (empty($pedidos)): ?>
     <!-- Sin pedidos -->
@@ -52,6 +80,8 @@ ob_start();
             $cfg   = $estadoConfig[$p['estado']] ?? $estadoConfig['pendiente'];
             $fecha = date('d/m/Y H:i', strtotime($p['created_at']));
             $num   = str_pad((string)$p['pedido_id'], 6, '0', STR_PAD_LEFT);
+            $detallesPedido = $detallesPorPedido[(int)$p['pedido_id']] ?? [];
+            $devolucionesPedido = $devolucionesPorPedido[(int)$p['pedido_id']] ?? [];
         ?>
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md hover:border-fp-primary/30 transition-all">
 
@@ -112,10 +142,128 @@ ob_start();
                 </div>
                 <?php endif; ?>
             </div>
+
+            <?php if ($p['estado'] === 'entregado'): ?>
+            <details class="border-t border-slate-100 group">
+                <summary class="list-none cursor-pointer px-4 py-3 bg-fp-bg-main/50 hover:bg-fp-bg-main transition-colors">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 text-[13px] font-bold text-fp-text">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4 text-fp-primary"></i>
+                            Solicitar devolución
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-fp-muted transition-transform group-open:rotate-180"></i>
+                    </div>
+                </summary>
+
+                <div class="px-4 pb-4 pt-2">
+                    <div class="mb-3 text-[12px] text-fp-muted bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                        Solo aplica para productos en buen estado de empaque y dentro del plazo legal de devolución.
+                    </div>
+
+                    <?php if (!empty($devolucionesPedido)): ?>
+                    <div class="mb-4 p-3 rounded-xl border border-fp-border bg-white">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-fp-muted mb-2">Solicitudes registradas</p>
+                        <div class="flex flex-col gap-2">
+                            <?php foreach ($devolucionesPedido as $dev):
+                                $devCfg = $estadoDevolucionConfig[$dev['estado']] ?? $estadoDevolucionConfig['pendiente'];
+                            ?>
+                            <div class="flex items-center justify-between gap-3 text-[12px]">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-fp-text truncate"><?= htmlspecialchars($dev['producto_nombre']) ?></p>
+                                    <p class="text-fp-muted">Cant. <?= (int)$dev['cantidad'] ?> · <?= htmlspecialchars($motivoLabel[$dev['motivo']] ?? $dev['motivo']) ?></p>
+                                </div>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold <?= $devCfg['cls'] ?>">
+                                    <?= $devCfg['label'] ?>
+                                </span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (empty($detallesPedido)): ?>
+                    <p class="text-[12px] text-fp-muted">No se encontraron productos para este pedido.</p>
+                    <?php else: ?>
+                    <form method="POST" action="<?= $basePath ?>/mi-cuenta/pedidos/<?= (int)$p['pedido_id'] ?>/devoluciones" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wide text-fp-muted mb-1">Producto *</label>
+                            <select name="producto_id" required class="w-full h-10 px-3 border border-fp-border rounded-xl text-[13px] text-fp-text focus:outline-none focus:border-fp-primary focus:ring-1 focus:ring-fp-primary/30 js-producto-dev">
+                                <option value="">Selecciona un producto</option>
+                                <?php foreach ($detallesPedido as $d): ?>
+                                <option value="<?= (int)$d['producto_id'] ?>"
+                                        data-max="<?= (int)$d['cantidad'] ?>"
+                                        data-control="<?= (int)($d['control_especial'] ?? 0) ?>">
+                                    <?= htmlspecialchars($d['producto_nombre']) ?> — Comprado: <?= (int)$d['cantidad'] ?>
+                                    <?= ((int)($d['control_especial'] ?? 0) === 1) ? ' (Control especial - no aplica)' : '' ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="mt-1 text-[11px] text-red-600 hidden js-aviso-control">Este producto es de control especial y no aplica para devolución.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wide text-fp-muted mb-1">Cantidad *</label>
+                            <input type="number" name="cantidad" min="1" value="1" required class="w-full h-10 px-3 border border-fp-border rounded-xl text-[13px] text-fp-text focus:outline-none focus:border-fp-primary focus:ring-1 focus:ring-fp-primary/30 js-cantidad-dev">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wide text-fp-muted mb-1">Motivo *</label>
+                            <select name="motivo" required class="w-full h-10 px-3 border border-fp-border rounded-xl text-[13px] text-fp-text focus:outline-none focus:border-fp-primary focus:ring-1 focus:ring-fp-primary/30">
+                                <option value="producto_danado">Producto dañado</option>
+                                <option value="error_envio">Error de envío</option>
+                                <option value="cambio_opinion">Cambio de opinión</option>
+                                <option value="vencido">Producto vencido</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wide text-fp-muted mb-1">Observación</label>
+                            <textarea name="observacion" rows="3" class="w-full px-3 py-2.5 border border-fp-border rounded-xl text-[13px] text-fp-text focus:outline-none focus:border-fp-primary focus:ring-1 focus:ring-fp-primary/30 resize-none" placeholder="Cuéntanos qué sucedió con el producto..."></textarea>
+                        </div>
+
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="h-10 px-5 bg-fp-primary text-white text-[13px] font-bold rounded-xl hover:bg-fp-primary-light transition-colors shadow-sm">
+                                Enviar solicitud
+                            </button>
+                        </div>
+                    </form>
+                    <?php endif; ?>
+                </div>
+            </details>
+            <?php endif; ?>
         </div>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('details form').forEach(function (form) {
+        const selectProducto = form.querySelector('.js-producto-dev');
+        const inputCantidad = form.querySelector('.js-cantidad-dev');
+        const avisoControl = form.querySelector('.js-aviso-control');
+        const submit = form.querySelector('button[type="submit"]');
+
+        if (!selectProducto || !inputCantidad) return;
+
+        const sync = function () {
+            const opt = selectProducto.options[selectProducto.selectedIndex];
+            const max = parseInt(opt?.dataset?.max || '1', 10);
+            const esControl = (opt?.dataset?.control || '0') === '1';
+            inputCantidad.max = String(Math.max(1, max));
+            if (parseInt(inputCantidad.value || '1', 10) > max) inputCantidad.value = '1';
+            if (avisoControl) avisoControl.classList.toggle('hidden', !esControl);
+            if (submit) submit.disabled = esControl;
+            if (submit) submit.classList.toggle('opacity-60', esControl);
+            if (submit) submit.classList.toggle('cursor-not-allowed', esControl);
+        };
+
+        selectProducto.addEventListener('change', sync);
+        sync();
+    });
+});
+</script>
+
 </div>
 
 <?php
