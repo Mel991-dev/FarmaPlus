@@ -54,6 +54,35 @@ class ClienteModel
         return $this->db->lastInsertId();
     }
 
+    public function obtenerDireccion(int $dirId, int $clienteId): array|false
+    {
+        $sql = "SELECT * FROM direcciones_entrega WHERE direccion_id = :id AND cliente_id = :cliente_id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $dirId, ':cliente_id' => $clienteId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarDireccion(int $dirId, int $clienteId, array $datos): int
+    {
+        $sql = "UPDATE direcciones_entrega 
+                SET alias = :alias, direccion = :direccion, barrio = :barrio, ciudad = :ciudad, referencia = :referencia, predeterminada = :predeterminada
+                WHERE direccion_id = :id AND cliente_id = :cliente_id";
+        
+        $datos[':id'] = $dirId;
+        $datos[':cliente_id'] = $clienteId;
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($datos);
+        return $stmt->rowCount();
+    }
+
+    public function desmarcarPredeterminadas(int $clienteId): void
+    {
+        $sql = "UPDATE direcciones_entrega SET predeterminada = 0 WHERE cliente_id = :cliente_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':cliente_id' => $clienteId]);
+    }
+
     public function eliminarDireccion(int $dirId, int $clienteId): int
     {
         $sql  = "DELETE FROM direcciones_entrega WHERE direccion_id = :id AND cliente_id = :cliente_id";
