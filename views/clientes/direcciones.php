@@ -29,46 +29,58 @@
         <div class="w-full lg:w-1/3 bg-white rounded-xl border border-fp-border shadow-sm flex flex-col">
             <div class="p-5 border-b border-fp-border bg-fp-bg-main/30">
                 <h3 class="text-base font-bold text-fp-text flex items-center gap-2">
-                    <i data-lucide="map-pin" class="w-4 h-4 text-fp-primary"></i> Añadir Dirección
+                    <i data-lucide="<?= isset($direccionEdit) ? 'edit-2' : 'map-pin' ?>" class="w-4 h-4 text-fp-primary"></i> 
+                    <?= isset($direccionEdit) ? 'Editar Dirección' : 'Añadir Dirección' ?>
                 </h3>
             </div>
             
-            <form action="<?= $basePath ?? '' ?>/mi-cuenta/direcciones/crear" method="POST" class="p-5 flex flex-col gap-4">
+            <form action="<?= $basePath ?? '' ?>/mi-cuenta/direcciones/<?= isset($direccionEdit) ? $direccionEdit['direccion_id'] . '/actualizar' : 'crear' ?>" method="POST" class="p-5 flex flex-col gap-4">
                 
                 <div class="flex flex-col gap-1.5">
                     <label for="alias" class="text-sm font-semibold text-fp-text">Alias (Casa, Oficina, etc.) <span class="text-fp-error">*</span></label>
-                    <input type="text" id="alias" name="alias" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Ej: Casa principal" required>
+                    <input type="text" id="alias" name="alias" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Ej: Casa principal" value="<?= htmlspecialchars($direccionEdit['alias'] ?? '') ?>" required>
                 </div>
                 
                 <div class="flex flex-col gap-1.5">
                     <label for="direccion" class="text-sm font-semibold text-fp-text">Dirección exacta <span class="text-fp-error">*</span></label>
-                    <input type="text" id="direccion" name="direccion" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Calle 123 #45-67" required>
+                    <input type="text" id="direccion" name="direccion" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Calle 123 #45-67" value="<?= htmlspecialchars($direccionEdit['direccion'] ?? '') ?>" required>
                 </div>
                 
                 <div class="flex gap-4">
                     <div class="flex flex-col gap-1.5 flex-1 w-1/2">
                         <label for="barrio" class="text-sm font-semibold text-fp-text">Barrio</label>
-                        <input type="text" id="barrio" name="barrio" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all">
+                        <input type="text" id="barrio" name="barrio" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" value="<?= htmlspecialchars($direccionEdit['barrio'] ?? '') ?>">
                     </div>
                     <div class="flex flex-col gap-1.5 flex-1 w-1/2">
                         <label for="ciudad" class="text-sm font-semibold text-fp-text">Ciudad <span class="text-fp-error">*</span></label>
-                        <input type="text" id="ciudad" name="ciudad" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" required value="Florencia">
+                        <input type="text" id="ciudad" name="ciudad" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" required value="<?= htmlspecialchars($direccionEdit['ciudad'] ?? 'Florencia') ?>">
                     </div>
                 </div>
                 
                 <div class="flex flex-col gap-1.5">
                     <label for="referencia" class="text-sm font-semibold text-fp-text">Punto de referencia</label>
-                    <input type="text" id="referencia" name="referencia" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Frente al parque...">
+                    <input type="text" id="referencia" name="referencia" class="w-full px-3.5 py-2 bg-fp-bg-main border border-fp-border rounded-lg text-sm text-fp-text focus:outline-none focus:border-fp-primary focus:ring-2 focus:ring-fp-primary/20 transition-all" placeholder="Frente al parque..." value="<?= htmlspecialchars($direccionEdit['referencia'] ?? '') ?>">
                 </div>
                 
                 <label class="flex items-center gap-2.5 mt-2 mb-1 cursor-pointer group">
-                    <input type="checkbox" name="predeterminada" value="1" class="w-4 h-4 text-fp-primary bg-fp-bg-main border-fp-border rounded focus:ring-fp-primary cursor-pointer">
+                    <input type="checkbox" name="predeterminada" value="1" <?= isset($direccionEdit) && $direccionEdit['predeterminada'] ? 'checked' : '' ?> class="w-4 h-4 text-fp-primary bg-fp-bg-main border-fp-border rounded focus:ring-fp-primary cursor-pointer">
                     <span class="text-sm font-medium text-fp-text group-hover:text-fp-primary transition-colors">Hacer mi dirección predeterminada</span>
                 </label>
                 
-                <button type="submit" class="w-full bg-fp-primary text-white font-semibold px-4 py-2.5 rounded-lg hover:bg-fp-primary-dark transition-colors flex items-center justify-center gap-2 mt-2 shadow-sm">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Guardar Dirección
-                </button>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <?php if(isset($direccionEdit)): ?>
+                        <a href="<?= $basePath ?? '' ?>/mi-cuenta/direcciones" class="flex-1 min-w-[100px] bg-fp-bg-main text-fp-text border border-fp-border font-semibold px-3 py-2.5 rounded-lg hover:bg-fp-border transition-colors flex items-center justify-center shadow-sm text-sm">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="flex-[2] min-w-[150px] bg-fp-primary text-white font-semibold px-3 py-2.5 rounded-lg hover:bg-fp-primary-dark transition-colors flex items-center justify-center gap-1.5 shadow-sm text-sm whitespace-nowrap">
+                            <i data-lucide="save" class="w-4 h-4 shrink-0"></i> Guardar Cambios
+                        </button>
+                    <?php else: ?>
+                        <button type="submit" class="w-full bg-fp-primary text-white font-semibold px-4 py-2.5 rounded-lg hover:bg-fp-primary-dark transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                            <i data-lucide="plus" class="w-4 h-4 shrink-0"></i> Guardar Dirección
+                        </button>
+                    <?php endif; ?>
+                </div>
             </form>
         </div>
 
@@ -108,11 +120,16 @@
                                 </p>
                             </div>
                             
-                            <form action="<?= $basePath ?? '' ?>/mi-cuenta/direcciones/<?= $dir['direccion_id'] ?>/eliminar" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar esta dirección?');" class="shrink-0 w-full md:w-auto mt-2 md:mt-0">
-                                <button type="submit" class="w-full md:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-fp-error bg-[#FDEDEC] hover:bg-[#FADBD8] border border-fp-error/20 transition-colors flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-fp-error/20 outline-none">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
-                                </button>
-                            </form>
+                            <div class="shrink-0 w-full md:w-auto mt-2 md:mt-0 flex gap-2">
+                                <a href="<?= $basePath ?? '' ?>/mi-cuenta/direcciones/<?= $dir['direccion_id'] ?>/editar" class="px-4 py-2 rounded-lg text-sm font-semibold text-fp-primary bg-fp-primary/10 hover:bg-fp-primary/20 border border-fp-primary/20 transition-colors flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-fp-primary/20 outline-none">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i> Editar
+                                </a>
+                                <form action="<?= $basePath ?? '' ?>/mi-cuenta/direcciones/<?= $dir['direccion_id'] ?>/eliminar" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar esta dirección?');" class="m-0">
+                                    <button type="submit" class="w-full md:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-fp-error bg-[#FDEDEC] hover:bg-[#FADBD8] border border-fp-error/20 transition-colors flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-fp-error/20 outline-none">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
