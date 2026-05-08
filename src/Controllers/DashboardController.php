@@ -139,8 +139,12 @@ class DashboardController
         include __DIR__ . '/../../views/dashboard/gerente.php';
         $contenido = ob_get_clean();
 
+        $layout = (($_SESSION['rol'] ?? '') === 'gerente')
+            ? __DIR__ . '/../../views/layouts/base_gerente.php'
+            : __DIR__ . '/../../views/layouts/base.php';
+
         ob_start();
-        include __DIR__ . '/../../views/layouts/base.php';
+        include $layout;
         $html = ob_get_clean();
 
         $response->getBody()->write($html);
