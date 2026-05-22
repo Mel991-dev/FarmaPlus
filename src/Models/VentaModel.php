@@ -26,8 +26,8 @@ class VentaModel
 
     public function insertarDetalle(array $datos): void
     {
-        $sql  = "INSERT INTO detalle_venta (venta_id, producto_id, lote_id, cantidad, precio_unitario, subtotal)
-                 VALUES (:venta_id, :producto_id, :lote_id, :cantidad, :precio_unitario, :subtotal)";
+        $sql  = "INSERT INTO detalle_venta (venta_id, producto_id, lote_id, cantidad, precio_unitario, subtotal, formula_medica)
+                 VALUES (:venta_id, :producto_id, :lote_id, :cantidad, :precio_unitario, :subtotal, :formula_medica)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($datos);
     }

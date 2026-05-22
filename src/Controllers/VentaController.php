@@ -58,7 +58,7 @@ class VentaController
 
         $items = $body['items'] ?? [];
         $metodoPago = $body['metodo_pago'] ?? 'efectivo';
-        $formula = trim($body['formula_medica'] ?? '');
+        $formula = ''; // Ya no se recibe formula global, se mantiene por compatibilidad en la BD
         $vendedorId = (int) ($_SESSION['usuario_id'] ?? 1); // Fallback iterativo
 
         if (empty($items)) {
@@ -74,10 +74,11 @@ class VentaController
             foreach ($items as $item) {
                 $pid = (int) $item['producto_id'];
                 $cant = (int) $item['cantidad'];
+                $itemFormula = trim($item['formula'] ?? '');
                 $producto = $this->productoModel->obtenerPorId($pid);
                 
                 if (!$producto) throw new \Exception("Producto NO encontrado (ID: $pid).");
-                if ($producto['control_especial'] == 1 && empty($formula)) {
+                if ($producto['control_especial'] == 1 && empty($itemFormula)) {
                     throw new \Exception("El producto {$producto['nombre']} exige registro de fórmula médica.");
                 }
 
@@ -100,6 +101,7 @@ class VentaController
             foreach ($items as $item) {
                 $pid = (int) $item['producto_id'];
                 $cant = (int) $item['cantidad'];
+                $itemFormula = trim($item['formula'] ?? '');
                 $producto = $this->productoModel->obtenerPorId($pid);
                 
                 // FEFO: Descuenta stock y nos dice de qué lotes se descontó
@@ -116,7 +118,8 @@ class VentaController
                         ':lote_id'         => $loteId,
                         ':cantidad'        => $qty,
                         ':precio_unitario' => $precio,
-                        ':subtotal'        => $qty * $precio
+                        ':subtotal'        => $qty * $precio,
+                        ':formula_medica'  => $itemFormula
                     ]);
                 }
             }
