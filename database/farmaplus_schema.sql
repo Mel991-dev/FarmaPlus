@@ -298,6 +298,8 @@ CREATE TABLE IF NOT EXISTS detalle_venta (
     cantidad        INT UNSIGNED  NOT NULL,
     precio_unitario DECIMAL(12,2) NOT NULL,
     subtotal        DECIMAL(12,2) NOT NULL,
+    formula_medica  VARCHAR(100)  NULL DEFAULT ''
+        COMMENT 'Número de fórmula para dispensación de control especial por producto',
     CONSTRAINT fk_dv_venta    FOREIGN KEY (venta_id)    REFERENCES ventas_presenciales (venta_id)    ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT fk_dv_producto FOREIGN KEY (producto_id) REFERENCES productos           (producto_id) ON UPDATE RESTRICT ON DELETE RESTRICT,
     CONSTRAINT fk_dv_lote     FOREIGN KEY (lote_id)     REFERENCES lotes               (lote_id)     ON UPDATE RESTRICT ON DELETE RESTRICT
