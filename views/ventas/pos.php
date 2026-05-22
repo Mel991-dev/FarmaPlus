@@ -179,17 +179,7 @@ $titulo = 'Punto de Venta';
       </button>
     </div>
 
-    <!-- Alerta Fórmula -->
-    <div id="formulaAlert" class="hidden flex-col gap-2 p-4 mx-4 mt-4 bg-fp-error/5 border border-fp-error/20 rounded-xl relative overflow-hidden transition-all duration-300">
-      <!-- Indicador rojo borde izquierdo decorativo -->
-      <div class="absolute left-0 top-0 bottom-0 w-1 bg-fp-error"></div>
-      
-      <div class="flex items-center gap-2 text-fp-error font-bold text-sm">
-        <i data-lucide="flask-conical" class="w-4 h-4"></i> Requiere Fórmula
-      </div>
-      <p class="text-[12px] text-fp-text/80 leading-relaxed font-medium">Hay productos en el carrito que exigen receta médica obligatoria.</p>
-      <input type="text" id="formulaInput" placeholder="Nº o Cód. de Fórmula" class="mt-1 w-full h-[38px] px-3 bg-white border border-fp-error/30 rounded-lg text-sm text-fp-text outline-none focus:border-fp-error focus:ring-2 focus:ring-fp-error/20 placeholder:text-slate-400 font-mono shadow-sm">
-    </div>
+    <!-- Alerta Fórmula eliminada: Ahora es por producto -->
 
     <!-- Lista de Items -->
     <div id="cartItems" class="flex-1 overflow-y-auto w-full flex flex-col px-1 pt-2 pb-4">
@@ -197,64 +187,64 @@ $titulo = 'Punto de Venta';
     </div>
 
     <!-- Footer Checkout (Fijo abajo) -->
-    <div class="border-t border-fp-border/60 bg-white p-5 flex flex-col gap-4 shrink-0 shadow-[0_-4px_24px_rgba(0,0,0,0.03)] z-10">
+    <div class="border-t border-fp-border/60 bg-white p-4 flex flex-col gap-3 shrink-0 shadow-[0_-4px_24px_rgba(0,0,0,0.03)] z-10">
       
       <!-- Cálculos -->
-      <div class="flex flex-col gap-2.5">
-        <div class="flex justify-between items-center text-[15px] text-fp-muted font-medium">
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center text-[14px] text-fp-muted font-medium">
           <span>Subtotal</span>
           <span id="summarySubtotal" class="font-mono text-fp-text">$0</span>
         </div>
         
-        <div class="flex justify-between items-center text-[15px] font-medium group">
+        <div class="flex justify-between items-center text-[14px] font-medium group">
           <span class="text-fp-muted">Descuento</span>
           <div class="flex items-center gap-2">
-             <span id="discountChip" class="hidden text-xs font-bold text-fp-primary bg-fp-bg-card px-2 py-0.5 rounded-full border border-fp-primary/20">- $0</span>
-             <div class="relative w-[110px]">
-               <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fp-muted font-mono text-sm">$</span>
-               <input type="number" id="discountInput" value="0" min="0" oninput="recalcTotal()" placeholder="0" class="w-full h-8 pl-6 pr-2 bg-[#f8fafc] border border-fp-border rounded-lg text-sm font-mono text-right text-fp-text outline-none focus:border-fp-primary focus:bg-white transition-colors hover:border-fp-border hover:bg-white group-hover:border-slate-300">
+             <span id="discountChip" class="hidden text-[11px] font-bold text-fp-primary bg-fp-bg-card px-2 py-0.5 rounded-full border border-fp-primary/20">- $0</span>
+             <div class="relative w-[100px]">
+               <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fp-muted font-mono text-[13px]">$</span>
+               <input type="number" id="discountInput" value="0" min="0" oninput="recalcTotal()" placeholder="0" class="w-full h-7 pl-6 pr-2 bg-[#f8fafc] border border-fp-border rounded-md text-[13px] font-mono text-right text-fp-text outline-none focus:border-fp-primary focus:bg-white transition-colors hover:border-fp-border hover:bg-white group-hover:border-slate-300">
              </div>
           </div>
         </div>
 
-        <div class="w-full border-t border-dashed border-fp-border/80 my-1"></div>
+        <div class="w-full border-t border-dashed border-fp-border/80 my-0.5"></div>
         
-        <div class="flex justify-between items-baseline mb-1">
-          <span class="text-lg font-bold text-fp-text">Total a Pagar</span>
-          <span id="grandTotal" class="text-3xl font-black text-fp-primary tracking-tight font-mono">$0</span>
+        <div class="flex justify-between items-baseline mb-0.5">
+          <span class="text-[15px] font-bold text-fp-text">Total a Pagar</span>
+          <span id="grandTotal" class="text-2xl font-black text-fp-primary tracking-tight font-mono">$0</span>
         </div>
       </div>
 
       <!-- Radios de Método de pago -->
-      <div class="flex flex-col gap-2">
-        <span class="text-[11px] font-bold text-fp-muted uppercase tracking-wider">Modo de Pago</span>
+      <div class="flex flex-col gap-1.5">
+        <span class="text-[10px] font-bold text-fp-muted uppercase tracking-wider">Modo de Pago</span>
         <div class="grid grid-cols-4 gap-2">
           
-          <button id="pay-efectivo" onclick="selectPay('efectivo')" class="pay-btn active h-[46px] border-2 border-fp-primary bg-fp-bg-main text-fp-primary rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all text-center">
-            <i data-lucide="banknote" class="w-4 h-4"></i>
-            <span class="text-[10px] font-bold leading-none">Cash</span>
+          <button id="pay-efectivo" onclick="selectPay('efectivo')" class="pay-btn active h-[42px] border-2 border-fp-primary bg-fp-bg-main text-fp-primary rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all text-center">
+            <i data-lucide="banknote" class="w-3.5 h-3.5"></i>
+            <span class="text-[9px] font-bold leading-none">Cash</span>
           </button>
           
-          <button id="pay-debito" onclick="selectPay('debito')" class="pay-btn h-[46px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
-            <i data-lucide="credit-card" class="w-4 h-4"></i>
-            <span class="text-[10px] font-bold leading-none">Débito</span>
+          <button id="pay-debito" onclick="selectPay('debito')" class="pay-btn h-[42px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+            <span class="text-[9px] font-bold leading-none">Débito</span>
           </button>
           
-          <button id="pay-credito" onclick="selectPay('credito')" class="pay-btn h-[46px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
-            <i data-lucide="credit-card" class="w-4 h-4 text-[#8e44ad]"></i>
-            <span class="text-[10px] font-bold leading-none">Crédit</span>
+          <button id="pay-credito" onclick="selectPay('credito')" class="pay-btn h-[42px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-[#8e44ad]"></i>
+            <span class="text-[9px] font-bold leading-none">Crédit</span>
           </button>
           
-          <button id="pay-transferencia" onclick="selectPay('transferencia')" class="pay-btn h-[46px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
-            <i data-lucide="smartphone" class="w-4 h-4 text-fp-success"></i>
-            <span class="text-[10px] font-bold leading-none">Trans.</span>
+          <button id="pay-transferencia" onclick="selectPay('transferencia')" class="pay-btn h-[42px] border border-fp-border bg-white text-fp-muted rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:border-slate-300 hover:bg-slate-50">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5 text-fp-success"></i>
+            <span class="text-[9px] font-bold leading-none">Trans.</span>
           </button>
 
         </div>
       </div>
 
       <!-- Main Action -->
-      <button id="btnConfirmSale" onclick="confirmSale()" class="w-full h-[52px] bg-fp-success hover:bg-[#219653] text-white rounded-xl font-bold text-[17px] flex items-center justify-center gap-2.5 transition-transform active:scale-[0.98] shadow-[0_4px_12px_rgba(39,174,96,0.25)] border-b-4 border-black/10 hover:border-black/20 mt-1">
+      <button id="btnConfirmSale" onclick="confirmSale()" class="w-full h-[48px] bg-fp-success hover:bg-[#219653] text-white rounded-xl font-bold text-[16px] flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-[0_4px_12px_rgba(39,174,96,0.25)] border-b-4 border-black/10 hover:border-black/20 mt-0.5">
         <i data-lucide="check-circle" class="w-5 h-5"></i> Confirmar Venta
       </button>
 
@@ -375,19 +365,8 @@ function renderProducts() {
 function renderCart() {
   const container = document.getElementById('cartItems');
   const countEl   = document.getElementById('cartCount');
-  const hasCtrl   = cart.some(i => i.ctrl);
-  const formulaEl = document.getElementById('formulaAlert');
 
   countEl.textContent = cart.length;
-  
-  if(hasCtrl) {
-      formulaEl.classList.remove('hidden');
-      formulaEl.classList.add('flex');
-  } else {
-      formulaEl.classList.add('hidden');
-      formulaEl.classList.remove('flex');
-      document.getElementById('formulaInput').value = ''; // Limpiar si lo quitaron
-  }
 
   if (cart.length === 0) {
     container.innerHTML = `
@@ -404,7 +383,7 @@ function renderCart() {
   }
 
   container.innerHTML = cart.map((item, idx) => `
-    <div class="bg-white border border-fp-border rounded-xl p-3 mx-4 my-2 flex flex-col gap-2 shadow-sm hover:border-fp-primary/30 transition-colors relative group">
+    <div class="bg-white border ${item.ctrl && (!item.formula || item.formula.trim() === '') ? 'border-fp-error/50 ring-1 ring-fp-error/20' : 'border-fp-border hover:border-fp-primary/30'} rounded-xl p-3 mx-4 my-2 flex flex-col gap-2 shadow-sm transition-colors relative group">
       
       <div class="flex items-start justify-between gap-2">
         <div class="flex-1 min-w-0">
@@ -418,6 +397,13 @@ function renderCart() {
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
+
+      ${item.ctrl ? `
+      <div class="mt-1 bg-fp-error/5 border border-fp-error/20 rounded-md p-2 flex items-center gap-2 transition-all">
+        <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-fp-error shrink-0"></i>
+        <input type="text" id="formula-item-${idx}" value="${item.formula || ''}" oninput="updateFormula(${idx}, this.value)" placeholder="Código de Fórmula" class="w-full h-7 px-2 bg-white border border-fp-error/30 rounded text-xs text-fp-text outline-none focus:border-fp-error focus:ring-1 focus:ring-fp-error/50 font-mono">
+      </div>
+      ` : ''}
 
       <div class="flex items-center justify-between mt-1 pt-2 border-t border-fp-border border-dashed">
         
@@ -479,7 +465,7 @@ function addToCart(id) {
       return;
     }
   } else {
-    cart.push({ ...prod, qty: 1 });
+    cart.push({ ...prod, qty: 1, formula: '' });
   }
   
   renderCart();
@@ -505,6 +491,18 @@ function clearCart() {
   cart = [];
   renderCart();
   showToast('Caja vaciada', 'info');
+}
+
+function updateFormula(idx, value) {
+  cart[idx].formula = value;
+  const card = document.getElementById(`formula-item-${idx}`).closest('.bg-white');
+  if(value.trim() === '') {
+     card.classList.add('border-fp-error/50', 'ring-1', 'ring-fp-error/20');
+     card.classList.remove('border-fp-border', 'hover:border-fp-primary/30');
+  } else {
+     card.classList.remove('border-fp-error/50', 'ring-1', 'ring-fp-error/20');
+     card.classList.add('border-fp-border', 'hover:border-fp-primary/30');
+  }
 }
 
 /* ── Filtros Optimizado ────────────────────────────────────── */
@@ -546,14 +544,16 @@ async function confirmSale() {
     showToast('Agrega productos para continuar.', 'warning'); return;
   }
   
-  const hasCtrl   = cart.some(i => i.ctrl);
-  const formulaV  = document.getElementById('formulaInput').value.trim();
-  
-  if (hasCtrl && !formulaV) {
-    showToast('Falta número de fórmula médica obligatoria.', 'error');
-    document.getElementById('formulaInput').focus(); 
-    document.getElementById('formulaAlert').classList.add('ring-2', 'ring-fp-error', 'ring-offset-2');
-    setTimeout(() => document.getElementById('formulaAlert').classList.remove('ring-2', 'ring-fp-error', 'ring-offset-2'), 1000);
+  // Validar fórmulas por cada producto de control especial
+  const missingFormulaIdx = cart.findIndex(i => i.ctrl && (!i.formula || i.formula.trim() === ''));
+  if (missingFormulaIdx !== -1) {
+    showToast('Falta número de fórmula médica en uno o más productos.', 'error');
+    const inputEl = document.getElementById(`formula-item-${missingFormulaIdx}`);
+    if(inputEl) {
+       inputEl.focus();
+       inputEl.closest('.bg-fp-error\\\\/5').classList.add('ring-2', 'ring-fp-error');
+       setTimeout(() => inputEl.closest('.bg-fp-error\\\\/5').classList.remove('ring-2', 'ring-fp-error'), 1000);
+    }
     return;
   }
   
@@ -565,8 +565,7 @@ async function confirmSale() {
 
   const payload = {
     metodo_pago: selectedPayment,
-    formula_medica: formulaV,
-    items: cart.map(i => ({ producto_id: i.id, cantidad: i.qty }))
+    items: cart.map(i => ({ producto_id: i.id, cantidad: i.qty, formula: i.formula ? i.formula.trim() : '' }))
   };
 
   try {
@@ -618,7 +617,6 @@ function printComprobante() {
 function newSale() {
   cart = [];
   document.getElementById('discountInput').value = '0';
-  document.getElementById('formulaInput').value  = '';
   document.getElementById('posSearchInput').value = '';
   document.getElementById('posCatSelect').value = '';
   searchQ = '';
